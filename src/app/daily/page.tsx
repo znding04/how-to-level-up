@@ -1,0 +1,124 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { loadData, saveData, generateId, todayString } from '@/lib/storage';
+import { DailyLog } from '@/lib/types';
+
+export default function DailyPage() {
+  const [logs, setLogs] = useState<DailyLog[]>([]);
+  const [mood, setMood] = useState<number>(3);
+  const [energy, setEnergy] = useState<number>(3);
+  const [notes, setNotes] = useState('');
+  const today = todayString();
+
+  useEffect(() => {
+    const data = loadData();
+    setLogs(data.dailyLogs);
+    const todayLog = data.dailyLogs.find((l) => l.date === today);
+    if (todayLog) {
+      setMood(todayLog.mood);
+      setEnergy(todayLog.energy);
+      setNotes(todayLog.notes);
+    }
+  }, [today]);
+
+  function saveLog() {
+    const data = loadData();
+    const existing = data.dailyLogs.findIndex((l) => l.date === today);
+    const log: DailyLog = {
+      id: existing >= 0 ? data.dailyLogs[existing].id : generateId(),
+      date: today,
+      mood: mood as DailyLog['mood'],
+      energy: energy as DailyLog['energy'],
+      notes,
+    };
+    const updated =
+      existing >= 0
+        ? data.dailyLogs.map((l, i) => (i === existing ? log : l))
+        : [...data.dailyLogs, log];
+    saveData({ ...data, dailyLogs: updated });
+    setLogs(updated);
+  }
+
+  const moodLabels = ['😞', '😐', '🙂', '😊', '🤩'];
+  const energyLabels = ['🪫', '🔋', '⚡', '🔥', '💥'];
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Daily Check-in</h1>
+
+      <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-5 space-y-5">
+        <div>
+          <label className="text-sm text-gray-400 mb-2 block">
+            Mood: {moodLabels[mood - 1]}
+          </label>
+          <input
+            type="range"
+            min={1}
+            max={5}
+            value={mood}
+            onChange={(e) => setMood(Number(e.target.value))}
+            className="w-full accent-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-400 mb-2 block">
+            Energy: {energyLabels[energy - 1]}
+          </label>
+          <input
+            type="range"
+            min={1}
+            max={5}
+            value={energy}
+            onChange={(e) => setEnergy(Number(e.target.value))}
+            className="w-full accent-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-400 mb-2 block">Notes</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="How was your day? What did you learn?"
+            rows={3}
+            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          />
+        </div>
+
+        <button
+          onClick={saveLog}
+          className="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
+          Save Check-in
+        </button>
+      </div>
+
+      {logs.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold mb-3">Recent Logs</h2>
+          <div className="space-y-2">
+            {logs
+              .slice()
+              .reverse()
+              .slice(0, 7)
+              .map((log) => (
+                <div
+                  key={log.id}
+                  className="flex items-center gap-3 bg-gray-800/30 rounded-lg px-3 py-2 text-sm"
+                >
+                  <span className="text-gray-400 w-24">{log.date}</span>
+                  <span>{moodLabels[log.mood - 1]}</span>
+                  <span>{energyLabels[log.energy - 1]}</span>
+                  <span className="text-gray-400 truncate flex-1">
+                    {log.notes || '—'}
+                  </span>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
