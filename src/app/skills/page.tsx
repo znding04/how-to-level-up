@@ -7,6 +7,9 @@ import { Skill } from '@/lib/types';
 export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [newName, setNewName] = useState('');
+  const [loggingId, setLoggingId] = useState<string | null>(null);
+  const [sessionDuration, setSessionDuration] = useState(30);
+  const [sessionNotes, setSessionNotes] = useState('');
 
   useEffect(() => {
     const data = loadData();
@@ -34,7 +37,14 @@ export default function SkillsPage() {
     setNewName('');
   }
 
-  function addSession(skillId: string) {
+  function startLogging(skillId: string) {
+    setLoggingId(skillId);
+    setSessionDuration(30);
+    setSessionNotes('');
+  }
+
+  function saveSession(skillId: string) {
+    if (sessionDuration <= 0) return;
     const updated = skills.map((s) => {
       if (s.id !== skillId) return s;
       return {
@@ -44,13 +54,14 @@ export default function SkillsPage() {
           {
             id: generateId(),
             date: todayString(),
-            durationMinutes: 30,
-            notes: '',
+            durationMinutes: sessionDuration,
+            notes: sessionNotes.trim(),
           },
         ],
       };
     });
     persist(updated);
+    setLoggingId(null);
   }
 
   function getTotalHours(skill: Skill): string {
@@ -64,6 +75,14 @@ export default function SkillsPage() {
     if (hours >= 30) return 'Intermediate';
     if (hours >= 5) return 'Beginner';
     return 'Novice';
+  }
+
+  function getLastSession(skill: Skill): string | null {
+    if (skill.sessions.length === 0) return null;
+    const sorted = [...skill.sessions].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    return sorted[0].date;
   }
 
   return (
@@ -111,16 +130,59 @@ export default function SkillsPage() {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-400">
-                  {getTotalHours(skill)}h total &middot; {skill.sessions.length} sessions
-                </p>
+                <div>
+                  <p className="text-sm text-gray-400">
+                    {getTotalHours(skill)}h total &middot; {skill.sessions.length} sessions
+                  </p>
+                  {getLastSession(skill) && (
+                    <p className="text-xs text-gray-500">Last: {getLastSession(skill)}</p>
+                  )}
+                </div>
                 <button
-                  onClick={() => addSession(skill.id)}
+                  onClick={() => startLogging(skill.id)}
                   className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors"
                 >
-                  + 30min
+                  Log session
                 </button>
               </div>
+
+              {loggingId === skill.id && (
+                <div className="mt-3 pt-3 border-t border-gray-700/50 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-gray-400">Duration (min):</label>
+                    <input
+                      type="number"
+                      value={sessionDuration}
+                      onChange={(e) => setSessionDuration(Number(e.target.value))}
+                      min={1}
+                      className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      value={sessionNotes}
+                      onChange={(e) => setSessionNotes(e.target.value)}
+                      placeholder="Notes (optional)..."
+                      className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => saveSession(skill.id)}
+                      className="text-xs bg-green-600 hover:bg-green-500 px-3 py-1 rounded transition-colors"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setLoggingId(null)}
+                      className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
