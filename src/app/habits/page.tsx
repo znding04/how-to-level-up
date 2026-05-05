@@ -1,24 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { loadData, saveData, generateId, todayString } from '@/lib/storage';
 import { Habit } from '@/lib/types';
 
 const PRESET_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function HabitsPage() {
-  const [habits, setHabits] = useState<Habit[]>([]);
+  const [habits, setHabits] = useState<Habit[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const data = loadData();
+    return data.habits;
+  });
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editFrequency, setEditFrequency] = useState<'daily' | 'weekly'>('daily');
   const [editColor, setEditColor] = useState('#3b82f6');
   const today = todayString();
-
-  useEffect(() => {
-    const data = loadData();
-    setHabits(data.habits);
-  }, []);
 
   function persist(updated: Habit[]) {
     setHabits(updated);

@@ -1,20 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { loadData, saveData, generateId, todayString } from '@/lib/storage';
 import { Goal } from '@/lib/types';
 
 export default function GoalsPage() {
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<Goal[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const data = loadData();
+    return data.goals;
+  });
   const [newTitle, setNewTitle] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
   const [addingMilestoneFor, setAddingMilestoneFor] = useState<string | null>(null);
-
-  useEffect(() => {
-    const data = loadData();
-    setGoals(data.goals);
-  }, []);
 
   function persist(updated: Goal[]) {
     setGoals(updated);

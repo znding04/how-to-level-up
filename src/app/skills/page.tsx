@@ -1,20 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { loadData, saveData, generateId, todayString } from '@/lib/storage';
 import { Skill } from '@/lib/types';
 
 export default function SkillsPage() {
-  const [skills, setSkills] = useState<Skill[]>([]);
+  const [skills, setSkills] = useState<Skill[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const data = loadData();
+    return data.skills;
+  });
   const [newName, setNewName] = useState('');
   const [loggingId, setLoggingId] = useState<string | null>(null);
   const [sessionDuration, setSessionDuration] = useState(30);
   const [sessionNotes, setSessionNotes] = useState('');
-
-  useEffect(() => {
-    const data = loadData();
-    setSkills(data.skills);
-  }, []);
 
   function persist(updated: Skill[]) {
     setSkills(updated);

@@ -1,26 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { loadData, saveData, generateId, todayString } from '@/lib/storage';
 import { DailyLog } from '@/lib/types';
 
 export default function DailyPage() {
-  const [logs, setLogs] = useState<DailyLog[]>([]);
-  const [mood, setMood] = useState<number>(3);
-  const [energy, setEnergy] = useState<number>(3);
-  const [notes, setNotes] = useState('');
   const today = todayString();
-
-  useEffect(() => {
+  const [logs, setLogs] = useState<DailyLog[]>(() => {
+    if (typeof window === 'undefined') return [];
     const data = loadData();
-    setLogs(data.dailyLogs);
+    return data.dailyLogs;
+  });
+  const [mood, setMood] = useState<number>(() => {
+    if (typeof window === 'undefined') return 3;
+    const data = loadData();
     const todayLog = data.dailyLogs.find((l) => l.date === today);
-    if (todayLog) {
-      setMood(todayLog.mood);
-      setEnergy(todayLog.energy);
-      setNotes(todayLog.notes);
-    }
-  }, [today]);
+    return todayLog ? todayLog.mood : 3;
+  });
+  const [energy, setEnergy] = useState<number>(() => {
+    if (typeof window === 'undefined') return 3;
+    const data = loadData();
+    const todayLog = data.dailyLogs.find((l) => l.date === today);
+    return todayLog ? todayLog.energy : 3;
+  });
+  const [notes, setNotes] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    const data = loadData();
+    const todayLog = data.dailyLogs.find((l) => l.date === today);
+    return todayLog ? todayLog.notes : '';
+  });
 
   function saveLog() {
     const data = loadData();
