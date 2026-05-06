@@ -48,12 +48,61 @@ export default function DailyPage() {
     setLogs(updated);
   }
 
+  function getCheckinStreak(logList: DailyLog[]): number {
+    if (logList.length === 0) return 0;
+    const dates = new Set(logList.map((l) => l.date));
+    let streak = 0;
+    const d = new Date();
+    while (true) {
+      const key = d.toISOString().split('T')[0];
+      if (dates.has(key)) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  function getBestCheckinStreak(logList: DailyLog[]): number {
+    if (logList.length === 0) return 0;
+    const dates = [...new Set(logList.map((l) => l.date))].sort();
+    let best = 1;
+    let current = 1;
+    for (let i = 1; i < dates.length; i++) {
+      const prev = new Date(dates[i - 1] + 'T00:00:00');
+      const curr = new Date(dates[i] + 'T00:00:00');
+      const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
+      if (diff === 1) {
+        current++;
+        best = Math.max(best, current);
+      } else {
+        current = 1;
+      }
+    }
+    return best;
+  }
+
   const moodLabels = ['😞', '😐', '🙂', '😊', '🤩'];
   const energyLabels = ['🪫', '🔋', '⚡', '🔥', '💥'];
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Daily Check-in</h1>
+
+      {logs.length > 0 && (
+        <div className="flex gap-4 mb-4">
+          <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg px-4 py-2 text-center">
+            <div className="text-lg font-bold">{getCheckinStreak(logs)}</div>
+            <div className="text-xs text-gray-400">Current Streak</div>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg px-4 py-2 text-center">
+            <div className="text-lg font-bold">{getBestCheckinStreak(logs)}</div>
+            <div className="text-xs text-gray-400">Best Streak</div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-5 space-y-5">
         <div>

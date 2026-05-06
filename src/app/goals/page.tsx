@@ -14,6 +14,7 @@ export default function GoalsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
   const [addingMilestoneFor, setAddingMilestoneFor] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   function persist(updated: Goal[]) {
     setGoals(updated);
@@ -40,6 +41,22 @@ export default function GoalsPage() {
     const updated = goals.map((g) => {
       if (g.id !== id) return g;
       return { ...g, status: g.status === 'active' ? 'completed' : 'active' } as Goal;
+    });
+    persist(updated);
+  }
+
+  function archiveGoal(id: string) {
+    const updated = goals.map((g) => {
+      if (g.id !== id) return g;
+      return { ...g, status: g.status === 'archived' ? 'active' : 'archived' } as Goal;
+    });
+    persist(updated);
+  }
+
+  function updateGoalField(id: string, field: 'description' | 'targetDate', value: string) {
+    const updated = goals.map((g) => {
+      if (g.id !== id) return g;
+      return { ...g, [field]: value };
     });
     persist(updated);
   }
@@ -101,13 +118,25 @@ export default function GoalsPage() {
         </button>
       </div>
 
+      <div className="flex items-center gap-2 mb-4">
+        <label className="text-sm text-gray-400 flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showArchived}
+            onChange={(e) => setShowArchived(e.target.checked)}
+            className="accent-blue-500"
+          />
+          Show archived
+        </label>
+      </div>
+
       {goals.length === 0 ? (
         <p className="text-gray-500 text-center mt-12">
           No goals yet. Set one to start leveling up!
         </p>
       ) : (
         <div className="space-y-3">
-          {goals.map((goal) => (
+          {goals.filter((g) => showArchived || g.status !== 'archived').map((goal) => (
             <div
               key={goal.id}
               className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4"
@@ -144,11 +173,39 @@ export default function GoalsPage() {
                     style={{ width: `${getProgress(goal)}%` }}
                   />
                 </div>
-                <p className="text-xs text-gray-400 mt-1">{getProgress(goal)}% complete</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-gray-400">{getProgress(goal)}% complete</p>
+                  {goal.targetDate && (
+                    <p className="text-xs text-gray-500">Due: {goal.targetDate}</p>
+                  )}
+                </div>
               </div>
 
               {expandedId === goal.id && (
                 <div className="mt-3 pt-3 border-t border-gray-700/50">
+                  <div className="space-y-2 mb-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Description</label>
+                      <textarea
+                        value={goal.description}
+                        onChange={(e) => updateGoalField(goal.id, 'description', e.target.value)}
+                        placeholder="Describe this goal..."
+                        rows={2}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Target Date</label>
+                      <input
+                        type="date"
+                        value={goal.targetDate}
+                        onChange={(e) => updateGoalField(goal.id, 'targetDate', e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
                   {goal.milestones.length > 0 && (
                     <div className="space-y-2 mb-3">
                       {goal.milestones.map((milestone) => (
@@ -206,12 +263,23 @@ export default function GoalsPage() {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => setAddingMilestoneFor(goal.id)}
-                      className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      + Add milestone
-                    </button>
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => setAddingMilestoneFor(goal.id)}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        + Add milestone
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          archiveGoal(goal.id);
+                        }}
+                        className="text-xs text-gray-500 hover:text-yellow-400 transition-colors"
+                      >
+                        {goal.status === 'archived' ? 'Unarchive' : 'Archive'}
+                      </button>
+                    </div>
                   )}
                 </div>
               )}

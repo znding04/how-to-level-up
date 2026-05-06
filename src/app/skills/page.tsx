@@ -14,6 +14,8 @@ export default function SkillsPage() {
   const [loggingId, setLoggingId] = useState<string | null>(null);
   const [sessionDuration, setSessionDuration] = useState(30);
   const [sessionNotes, setSessionNotes] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
 
   function persist(updated: Skill[]) {
     setSkills(updated);
@@ -34,6 +36,26 @@ export default function SkillsPage() {
     };
     persist([...skills, skill]);
     setNewName('');
+  }
+
+  function deleteSkill(id: string) {
+    if (!window.confirm('Delete this skill and all its sessions?')) return;
+    persist(skills.filter((s) => s.id !== id));
+  }
+
+  function startEditSkill(skill: Skill) {
+    setEditingId(skill.id);
+    setEditName(skill.name);
+  }
+
+  function saveEditSkill(id: string) {
+    if (!editName.trim()) return;
+    const updated = skills.map((s) => {
+      if (s.id !== id) return s;
+      return { ...s, name: editName.trim() };
+    });
+    persist(updated);
+    setEditingId(null);
   }
 
   function startLogging(skillId: string) {
@@ -122,11 +144,59 @@ export default function SkillsPage() {
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: skill.color }}
                   />
-                  <h3 className="font-medium">{skill.name}</h3>
+                  {editingId === skill.id ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEditSkill(skill.id);
+                          if (e.key === 'Escape') setEditingId(null);
+                        }}
+                        autoFocus
+                        className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={() => saveEditSkill(skill.id)}
+                        className="text-xs bg-green-600 hover:bg-green-500 px-2 py-1 rounded transition-colors"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <h3 className="font-medium">{skill.name}</h3>
+                  )}
                 </div>
-                <span className="text-xs bg-gray-700 px-2 py-1 rounded">
-                  {getLevel(skill)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs bg-gray-700 px-2 py-1 rounded">
+                    {getLevel(skill)}
+                  </span>
+                  {editingId !== skill.id && (
+                    <>
+                      <button
+                        onClick={() => startEditSkill(skill)}
+                        className="text-gray-500 hover:text-gray-300 transition-colors"
+                        title="Edit"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => deleteSkill(skill.id)}
+                        className="text-gray-500 hover:text-red-400 transition-colors"
+                        title="Delete"
+                      >
+                        🗑️
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <div>

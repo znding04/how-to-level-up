@@ -89,6 +89,64 @@ export default function HabitsPage() {
     return streak;
   }
 
+  function getBestStreak(habit: Habit): number {
+    const dates = Object.keys(habit.completions).filter((k) => habit.completions[k]).sort();
+    if (dates.length === 0) return 0;
+
+    if (habit.frequency === 'weekly') {
+      // For weekly habits, count consecutive weeks with at least one completion
+      const weeks = new Set<string>();
+      for (const date of dates) {
+        const d = new Date(date + 'T00:00:00');
+        const day = d.getDay();
+        const diffToMonday = day === 0 ? 6 : day - 1;
+        d.setDate(d.getDate() - diffToMonday);
+        weeks.add(d.toISOString().split('T')[0]);
+      }
+      const sortedWeeks = [...weeks].sort();
+      let best = 1;
+      let current = 1;
+      for (let i = 1; i < sortedWeeks.length; i++) {
+        const prev = new Date(sortedWeeks[i - 1] + 'T00:00:00');
+        const curr = new Date(sortedWeeks[i] + 'T00:00:00');
+        const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
+        if (diff === 7) {
+          current++;
+          best = Math.max(best, current);
+        } else {
+          current = 1;
+        }
+      }
+      return best;
+    }
+
+    let best = 1;
+    let current = 1;
+    for (let i = 1; i < dates.length; i++) {
+      const prev = new Date(dates[i - 1] + 'T00:00:00');
+      const curr = new Date(dates[i] + 'T00:00:00');
+      const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
+      if (diff === 1) {
+        current++;
+        best = Math.max(best, current);
+      } else {
+        current = 1;
+      }
+    }
+    return best;
+  }
+
+  function getWeeklyCompletionRate(habit: Habit): number {
+    let count = 0;
+    const d = new Date();
+    for (let i = 0; i < 7; i++) {
+      const key = d.toISOString().split('T')[0];
+      if (habit.completions[key]) count++;
+      d.setDate(d.getDate() - 1);
+    }
+    return Math.round((count / 7) * 100);
+  }
+
   function getWeeklyStreak(habit: Habit): number {
     let streak = 0;
     const d = new Date();
@@ -234,9 +292,16 @@ export default function HabitsPage() {
                       {habit.frequency === 'weekly' ? 'weekly' : ''}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-400">
-                    {getStreak(habit) > 0 &&
-                      `🔥 ${getStreak(habit)}${habit.frequency === 'weekly' ? 'w' : 'd'}`}
+                  <div className="text-xs text-gray-400 text-right space-y-0.5">
+                    {getStreak(habit) > 0 && (
+                      <div>🔥 {getStreak(habit)}{habit.frequency === 'weekly' ? 'w' : 'd'}</div>
+                    )}
+                    {getBestStreak(habit) > 0 && (
+                      <div className="text-gray-500">Best: {getBestStreak(habit)}{habit.frequency === 'weekly' ? 'w' : 'd'}</div>
+                    )}
+                    {habit.frequency === 'daily' && (
+                      <div className="text-gray-500">7d: {getWeeklyCompletionRate(habit)}%</div>
+                    )}
                   </div>
                   <button
                     onClick={() => startEdit(habit)}
