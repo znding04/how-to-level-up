@@ -46,6 +46,8 @@ export default function DailyPage() {
         : [...data.dailyLogs, log];
     saveData({ ...data, dailyLogs: updated });
     setLogs(updated);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   }
 
   function getCheckinStreak(logList: DailyLog[]): number {
@@ -83,6 +85,21 @@ export default function DailyPage() {
     }
     return best;
   }
+
+  const [saved, setSaved] = useState(false);
+
+  const reflectionPrompts = [
+    'What was the highlight of your day?',
+    'What did you learn today?',
+    'What are you grateful for?',
+    'What would you do differently?',
+    'What challenged you today?',
+    'What made you smile?',
+    'What progress did you make on your goals?',
+  ];
+  const [promptIndex] = useState(() =>
+    Math.floor(Math.random() * reflectionPrompts.length)
+  );
 
   const moodLabels = ['😞', '😐', '🙂', '😊', '🤩'];
   const energyLabels = ['🪫', '🔋', '⚡', '🔥', '💥'];
@@ -134,7 +151,10 @@ export default function DailyPage() {
         </div>
 
         <div>
-          <label className="text-sm text-gray-400 mb-2 block">Notes</label>
+          <label className="text-sm text-gray-400 mb-1 block">Notes</label>
+          <p className="text-xs text-gray-500 mb-2 italic">
+            {reflectionPrompts[promptIndex]}
+          </p>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -146,9 +166,13 @@ export default function DailyPage() {
 
         <button
           onClick={saveLog}
-          className="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded-lg text-sm font-medium transition-colors"
+          className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+            saved
+              ? 'bg-green-600 text-white'
+              : 'bg-blue-600 hover:bg-blue-500'
+          }`}
         >
-          Save Check-in
+          {saved ? 'Saved!' : 'Save Check-in'}
         </button>
       </div>
 

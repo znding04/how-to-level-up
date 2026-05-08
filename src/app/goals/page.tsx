@@ -53,6 +53,12 @@ export default function GoalsPage() {
     persist(updated);
   }
 
+  function deleteGoal(id: string) {
+    if (!window.confirm('Delete this goal permanently?')) return;
+    persist(goals.filter((g) => g.id !== id));
+    if (expandedId === id) setExpandedId(null);
+  }
+
   function updateGoalField(id: string, field: 'description' | 'targetDate', value: string) {
     const updated = goals.map((g) => {
       if (g.id !== id) return g;
@@ -270,15 +276,26 @@ export default function GoalsPage() {
                       >
                         + Add milestone
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          archiveGoal(goal.id);
-                        }}
-                        className="text-xs text-gray-500 hover:text-yellow-400 transition-colors"
-                      >
-                        {goal.status === 'archived' ? 'Unarchive' : 'Archive'}
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            archiveGoal(goal.id);
+                          }}
+                          className="text-xs text-gray-500 hover:text-yellow-400 transition-colors"
+                        >
+                          {goal.status === 'archived' ? 'Unarchive' : 'Archive'}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteGoal(goal.id);
+                          }}
+                          className="text-xs text-gray-500 hover:text-red-400 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

@@ -78,8 +78,8 @@ export default function DashboardPage() {
     }
   }
 
-  const moodEmojis = ['', '😞', '😕', '😐', '🙂', '😄'];
-  const energyEmojis = ['', '🪫', '🔋', '⚡', '🔥', '🚀'];
+  const moodEmojis = ['', '😞', '😐', '🙂', '😊', '🤩'];
+  const energyEmojis = ['', '🪫', '🔋', '⚡', '🔥', '💥'];
 
   return (
     <div className="space-y-4">
