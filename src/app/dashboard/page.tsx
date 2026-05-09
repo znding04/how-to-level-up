@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { loadData, todayString } from '@/lib/storage';
+import { useEffect, useState, useRef } from 'react';
+import { loadData, saveData, todayString } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import Link from 'next/link';
 
@@ -29,6 +29,7 @@ function getWeekDates(): string[] {
 
 export default function DashboardPage() {
   const [data, setData] = useState<AppData>(() => loadData());
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setData(loadData());
@@ -80,6 +81,44 @@ export default function DashboardPage() {
 
   const moodEmojis = ['', '😞', '😐', '🙂', '😊', '🤩'];
   const energyEmojis = ['', '🪫', '🔋', '⚡', '🔥', '💥'];
+
+  function handleExport() {
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `huang-up-backup-${todayString()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target?.result as string);
+        if (
+          !Array.isArray(parsed.habits) ||
+          !Array.isArray(parsed.goals) ||
+          !Array.isArray(parsed.dailyLogs) ||
+          !Array.isArray(parsed.skills)
+        ) {
+          alert('Invalid backup file format.');
+          return;
+        }
+        if (!confirm('Replace all current data with this backup?')) return;
+        saveData(parsed as AppData);
+        setData(parsed as AppData);
+      } catch {
+        alert('Failed to parse backup file.');
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
 
   return (
     <div className="space-y-4">
@@ -225,6 +264,29 @@ export default function DashboardPage() {
           )}
         </div>
       </Link>
+
+      {/* Data Export/Import */}
+      <div className="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-4">
+        <h2 className="font-semibold text-sm text-gray-400 mb-3">Data</h2>
+        <div className="flex gap-3">
+          <button
+            onClick={handleExport}
+            className="flex-1 flex items-center justify-center gap-2 bg-gray-700/50 hover:bg-gray-700 text-sm text-gray-300 rounded-xl py-2 transition-colors"
+          >
+            📤 Export
+          </button>
+          <label className="flex-1 flex items-center justify-center gap-2 bg-gray-700/50 hover:bg-gray-700 text-sm text-gray-300 rounded-xl py-2 transition-colors cursor-pointer">
+            📥 Import
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+          </label>
+        </div>
+      </div>
     </div>
   );
 }
