@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { loadData, saveData, generateId, todayString } from '@/lib/storage';
 import { Habit } from '@/lib/types';
 
@@ -179,7 +180,15 @@ export default function HabitsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Habits</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Habits</h1>
+        <Link
+          href="/habits/trends"
+          className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+        >
+          Trends &rarr;
+        </Link>
+      </div>
 
       <div className="flex gap-2 mb-6">
         <input

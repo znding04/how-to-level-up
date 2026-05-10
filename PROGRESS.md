@@ -10,10 +10,18 @@
 - **Data Export** (dashboard): Downloads `huang-up-backup-YYYY-MM-DD.json`
 - **Data Import** (dashboard): File picker with JSON validation + confirmation dialog
 
+## 2026-05-10
+### Added: Habit Trends & Visualizations
+- **Trends page** (`/habits/trends`): New page accessible via "Trends" link on the habits page
+- **Heatmap grid**: GitHub-style contribution heatmap showing last 12 weeks of daily habit completions, color-coded by completion ratio
+- **Weekly bar chart**: 8-week bar chart showing weekly completion rate percentages
+- **30-day breakdown**: Per-habit progress bars with completion counts and percentages
+- **Habit filter**: Dropdown to view trends for all daily habits or a single habit
+- No external charting libraries — built with pure CSS/Tailwind
+
 ## Future Ideas
 - Deploy to a free host (Vercel, Cloudflare Pages, Netlify)
 - PWA: Add to home screen prompt
-- Charts/visualizations for weekly/monthly habit trends
 - Weekly review page
 - Milestone notifications/reminders
 - Dark/light theme toggle
