@@ -125,7 +125,7 @@ export default function DashboardPage() {
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold">{getGreeting()}</h1>
-        <p className="text-gray-400 text-sm">
+        <p className="text-fg-secondary text-sm">
           {new Date().toLocaleDateString('en-US', {
             weekday: 'long',
             month: 'long',
@@ -138,7 +138,7 @@ export default function DashboardPage() {
       {streak > 0 && (
         <div className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 border border-blue-500/30 rounded-2xl p-4 text-center">
           <p className="text-3xl font-bold">🔥 {streak} day streak</p>
-          <p className="text-gray-300 text-sm mt-1">
+          <p className="text-fg-secondary text-sm mt-1">
             {streak >= 7
               ? "You're on fire! Keep it going!"
               : streak >= 3
@@ -150,35 +150,35 @@ export default function DashboardPage() {
 
       {/* Habits Summary */}
       <Link href="/habits" className="block">
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-4">
+        <div className="bg-card border border-card-border rounded-2xl p-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-semibold flex items-center gap-2">
               🔄 Habits
             </h2>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-fg-secondary">
               {completedToday}/{totalHabits} done
             </span>
           </div>
           {totalHabits === 0 ? (
-            <p className="text-gray-500 text-sm">No habits yet — add one!</p>
+            <p className="text-fg-muted text-sm">No habits yet — add one!</p>
           ) : completedToday === totalHabits ? (
             <p className="text-green-400 text-sm">✅ All done for today!</p>
           ) : (
             <div className="space-y-1">
               {uncheckedHabits.slice(0, 3).map((h) => (
-                <p key={h.id} className="text-sm text-gray-400">
+                <p key={h.id} className="text-sm text-fg-secondary">
                   ○ {h.name}
                 </p>
               ))}
               {uncheckedHabits.length > 3 && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-fg-muted">
                   +{uncheckedHabits.length - 3} more
                 </p>
               )}
             </div>
           )}
           {totalHabits > 0 && (
-            <div className="mt-3 w-full bg-gray-700 rounded-full h-2">
+            <div className="mt-3 w-full bg-bar-track rounded-full h-2">
               <div
                 className="bg-blue-500 h-2 rounded-full transition-all"
                 style={{
@@ -192,7 +192,7 @@ export default function DashboardPage() {
 
       {/* Daily Check-in */}
       <Link href="/daily" className="block">
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-4">
+        <div className="bg-card border border-card-border rounded-2xl p-4">
           <h2 className="font-semibold flex items-center gap-2 mb-2">
             📝 Daily Check-in
           </h2>
@@ -206,7 +206,7 @@ export default function DashboardPage() {
               </span>
             </div>
           ) : (
-            <p className="text-gray-500 text-sm">
+            <p className="text-fg-muted text-sm">
               Haven&apos;t checked in yet — tap to log today
             </p>
           )}
@@ -215,29 +215,29 @@ export default function DashboardPage() {
 
       {/* Goals Progress */}
       <Link href="/goals" className="block">
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-4">
+        <div className="bg-card border border-card-border rounded-2xl p-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-semibold flex items-center gap-2">
               🎯 Goals
             </h2>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-fg-secondary">
               {activeGoals.length} active
             </span>
           </div>
           {activeGoals.length === 0 ? (
-            <p className="text-gray-500 text-sm">No active goals — set one!</p>
+            <p className="text-fg-muted text-sm">No active goals — set one!</p>
           ) : (
             <>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-fg-secondary">
                 {completedMilestones}/{allMilestones.length} milestones done
               </p>
-              <div className="mt-2 w-full bg-gray-700 rounded-full h-2">
+              <div className="mt-2 w-full bg-bar-track rounded-full h-2">
                 <div
                   className="bg-blue-500 h-2 rounded-full transition-all"
                   style={{ width: `${goalPercent}%` }}
                 />
               </div>
-              <p className="text-right text-xs text-gray-500 mt-1">
+              <p className="text-right text-xs text-fg-muted mt-1">
                 {goalPercent}%
               </p>
             </>
@@ -247,18 +247,18 @@ export default function DashboardPage() {
 
       {/* Skills Practice */}
       <Link href="/skills" className="block">
-        <div className="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-4">
+        <div className="bg-card border border-card-border rounded-2xl p-4">
           <h2 className="font-semibold flex items-center gap-2 mb-2">
             ⚡ Skills Practice
           </h2>
           <p className="text-2xl font-bold">
             {weekHours}
-            <span className="text-sm font-normal text-gray-400 ml-1">
+            <span className="text-sm font-normal text-fg-secondary ml-1">
               hrs this week
             </span>
           </p>
           {data.skills.length === 0 && (
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-fg-muted text-sm mt-1">
               No skills tracked yet — start one!
             </p>
           )}
@@ -266,16 +266,16 @@ export default function DashboardPage() {
       </Link>
 
       {/* Data Export/Import */}
-      <div className="bg-gray-800/50 border border-gray-700/50 rounded-2xl p-4">
-        <h2 className="font-semibold text-sm text-gray-400 mb-3">Data</h2>
+      <div className="bg-card border border-card-border rounded-2xl p-4">
+        <h2 className="font-semibold text-sm text-fg-secondary mb-3">Data</h2>
         <div className="flex gap-3">
           <button
             onClick={handleExport}
-            className="flex-1 flex items-center justify-center gap-2 bg-gray-700/50 hover:bg-gray-700 text-sm text-gray-300 rounded-xl py-2 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 bg-surface-dim hover:bg-surface text-sm text-fg-secondary rounded-xl py-2 transition-colors"
           >
             📤 Export
           </button>
-          <label className="flex-1 flex items-center justify-center gap-2 bg-gray-700/50 hover:bg-gray-700 text-sm text-gray-300 rounded-xl py-2 transition-colors cursor-pointer">
+          <label className="flex-1 flex items-center justify-center gap-2 bg-surface-dim hover:bg-surface text-sm text-fg-secondary rounded-xl py-2 transition-colors cursor-pointer">
             📥 Import
             <input
               ref={fileInputRef}

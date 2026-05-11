@@ -197,7 +197,7 @@ export default function HabitsPage() {
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addHabit()}
           placeholder="New habit..."
-          className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={addHabit}
@@ -208,7 +208,7 @@ export default function HabitsPage() {
       </div>
 
       {habits.length === 0 ? (
-        <p className="text-gray-500 text-center mt-12">
+        <p className="text-fg-muted text-center mt-12">
           No habits yet. Add one to get started!
         </p>
       ) : (
@@ -216,7 +216,7 @@ export default function HabitsPage() {
           {habits.map((habit) => (
             <div
               key={habit.id}
-              className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4"
+              className="bg-card border border-card-border rounded-xl p-4"
             >
               {editingId === habit.id ? (
                 <div className="space-y-3">
@@ -224,16 +224,16 @@ export default function HabitsPage() {
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400">Frequency:</span>
+                    <span className="text-xs text-fg-secondary">Frequency:</span>
                     <button
                       onClick={() => setEditFrequency('daily')}
                       className={`text-xs px-2 py-1 rounded ${
                         editFrequency === 'daily'
                           ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300'
+                          : 'bg-surface text-fg-secondary'
                       }`}
                     >
                       Daily
@@ -243,14 +243,14 @@ export default function HabitsPage() {
                       className={`text-xs px-2 py-1 rounded ${
                         editFrequency === 'weekly'
                           ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700 text-gray-300'
+                          : 'bg-surface text-fg-secondary'
                       }`}
                     >
                       Weekly
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">Color:</span>
+                    <span className="text-xs text-fg-secondary">Color:</span>
                     {PRESET_COLORS.map((c) => (
                       <button
                         key={c}
@@ -271,7 +271,7 @@ export default function HabitsPage() {
                     </button>
                     <button
                       onClick={() => setEditingId(null)}
-                      className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded transition-colors"
+                      className="text-xs bg-surface hover:bg-surface-hover px-3 py-1 rounded transition-colors"
                     >
                       Cancel
                     </button>
@@ -284,7 +284,7 @@ export default function HabitsPage() {
                     className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${
                       habit.completions[today]
                         ? 'border-green-500 bg-green-500/20 text-green-400'
-                        : 'border-gray-600 hover:border-gray-400'
+                        : 'border-input-border hover:border-fg-secondary'
                     }`}
                   >
                     {habit.completions[today] && '✓'}
@@ -292,36 +292,36 @@ export default function HabitsPage() {
                   <div className="flex-1">
                     <span
                       className={`font-medium ${
-                        habit.completions[today] ? 'line-through text-gray-500' : ''
+                        habit.completions[today] ? 'line-through text-fg-muted' : ''
                       }`}
                     >
                       {habit.name}
                     </span>
-                    <span className="text-xs text-gray-500 ml-2">
+                    <span className="text-xs text-fg-muted ml-2">
                       {habit.frequency === 'weekly' ? 'weekly' : ''}
                     </span>
                   </div>
-                  <div className="text-xs text-gray-400 text-right space-y-0.5">
+                  <div className="text-xs text-fg-secondary text-right space-y-0.5">
                     {getStreak(habit) > 0 && (
                       <div>🔥 {getStreak(habit)}{habit.frequency === 'weekly' ? 'w' : 'd'}</div>
                     )}
                     {getBestStreak(habit) > 0 && (
-                      <div className="text-gray-500">Best: {getBestStreak(habit)}{habit.frequency === 'weekly' ? 'w' : 'd'}</div>
+                      <div className="text-fg-muted">Best: {getBestStreak(habit)}{habit.frequency === 'weekly' ? 'w' : 'd'}</div>
                     )}
                     {habit.frequency === 'daily' && (
-                      <div className="text-gray-500">7d: {getWeeklyCompletionRate(habit)}%</div>
+                      <div className="text-fg-muted">7d: {getWeeklyCompletionRate(habit)}%</div>
                     )}
                   </div>
                   <button
                     onClick={() => startEdit(habit)}
-                    className="text-gray-500 hover:text-gray-300 transition-colors"
+                    className="text-fg-muted hover:text-fg-secondary transition-colors"
                     title="Edit"
                   >
                     ✏️
                   </button>
                   <button
                     onClick={() => deleteHabit(habit.id)}
-                    className="text-gray-500 hover:text-red-400 transition-colors"
+                    className="text-fg-muted hover:text-red-400 transition-colors"
                     title="Delete"
                   >
                     🗑️
