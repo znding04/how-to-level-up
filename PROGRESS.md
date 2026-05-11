@@ -19,6 +19,15 @@
 - **Habit filter**: Dropdown to view trends for all daily habits or a single habit
 - No external charting libraries — built with pure CSS/Tailwind
 
+## 2026-05-11
+### Added: Dark/Light Theme Toggle
+- **ThemeProvider** (`src/components/ThemeProvider.tsx`): Client component with React context — manages theme state, reads/writes localStorage, applies `dark` class to `<html>` on mount
+- **Tailwind v4 dark mode**: `@custom-variant dark (&:where(.dark, .dark *))` — class-based dark mode strategy
+- **Light theme CSS variables**: Full set of light palette overrides (gray-50/gray-900 backgrounds, white cards, warm grays for secondary text)
+- **Dark theme CSS variables**: Preserved as `.dark` class overrides in globals.css
+- **Theme toggle button** in TabNav: Sun SVG in dark mode (click for light), moon SVG in light mode (click for dark)
+- **No FOUC**: localStorage check on client-side useEffect prevents flash of wrong theme
+
 ## Future Ideas
 - Deploy to a free host (Vercel, Cloudflare Pages, Netlify)
 - PWA: Add to home screen prompt
