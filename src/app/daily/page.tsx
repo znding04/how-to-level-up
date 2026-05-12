@@ -110,20 +110,20 @@ export default function DailyPage() {
 
       {logs.length > 0 && (
         <div className="flex gap-4 mb-4">
-          <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg px-4 py-2 text-center">
+          <div className="bg-card border border-card-border rounded-lg px-4 py-2 text-center">
             <div className="text-lg font-bold">{getCheckinStreak(logs)}</div>
-            <div className="text-xs text-gray-400">Current Streak</div>
+            <div className="text-xs text-fg-secondary">Current Streak</div>
           </div>
-          <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg px-4 py-2 text-center">
+          <div className="bg-card border border-card-border rounded-lg px-4 py-2 text-center">
             <div className="text-lg font-bold">{getBestCheckinStreak(logs)}</div>
-            <div className="text-xs text-gray-400">Best Streak</div>
+            <div className="text-xs text-fg-secondary">Best Streak</div>
           </div>
         </div>
       )}
 
-      <div className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-5 space-y-5">
+      <div className="bg-card border border-card-border rounded-xl p-5 space-y-5">
         <div>
-          <label className="text-sm text-gray-400 mb-2 block">
+          <label className="text-sm text-fg-secondary mb-2 block">
             Mood: {moodLabels[mood - 1]}
           </label>
           <input
@@ -137,7 +137,7 @@ export default function DailyPage() {
         </div>
 
         <div>
-          <label className="text-sm text-gray-400 mb-2 block">
+          <label className="text-sm text-fg-secondary mb-2 block">
             Energy: {energyLabels[energy - 1]}
           </label>
           <input
@@ -151,8 +151,8 @@ export default function DailyPage() {
         </div>
 
         <div>
-          <label className="text-sm text-gray-400 mb-1 block">Notes</label>
-          <p className="text-xs text-gray-500 mb-2 italic">
+          <label className="text-sm text-fg-secondary mb-1 block">Notes</label>
+          <p className="text-xs text-fg-muted mb-2 italic">
             {reflectionPrompts[promptIndex]}
           </p>
           <textarea
@@ -160,7 +160,7 @@ export default function DailyPage() {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="How was your day? What did you learn?"
             rows={3}
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
         </div>
 
@@ -187,12 +187,12 @@ export default function DailyPage() {
               .map((log) => (
                 <div
                   key={log.id}
-                  className="flex items-center gap-3 bg-gray-800/30 rounded-lg px-3 py-2 text-sm"
+                  className="flex items-center gap-3 bg-surface-dim rounded-lg px-3 py-2 text-sm"
                 >
-                  <span className="text-gray-400 w-24">{log.date}</span>
+                  <span className="text-fg-secondary w-24">{log.date}</span>
                   <span>{moodLabels[log.mood - 1]}</span>
                   <span>{energyLabels[log.energy - 1]}</span>
-                  <span className="text-gray-400 truncate flex-1">
+                  <span className="text-fg-secondary truncate flex-1">
                     {log.notes || '—'}
                   </span>
                 </div>

@@ -114,7 +114,7 @@ export default function GoalsPage() {
           onChange={(e) => setNewTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addGoal()}
           placeholder="New goal..."
-          className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={addGoal}
@@ -125,7 +125,7 @@ export default function GoalsPage() {
       </div>
 
       <div className="flex items-center gap-2 mb-4">
-        <label className="text-sm text-gray-400 flex items-center gap-2 cursor-pointer">
+        <label className="text-sm text-fg-secondary flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
             checked={showArchived}
@@ -137,7 +137,7 @@ export default function GoalsPage() {
       </div>
 
       {goals.length === 0 ? (
-        <p className="text-gray-500 text-center mt-12">
+        <p className="text-fg-muted text-center mt-12">
           No goals yet. Set one to start leveling up!
         </p>
       ) : (
@@ -145,7 +145,7 @@ export default function GoalsPage() {
           {goals.filter((g) => showArchived || g.status !== 'archived').map((goal) => (
             <div
               key={goal.id}
-              className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4"
+              className="bg-card border border-card-border rounded-xl p-4"
             >
               <div
                 className="cursor-pointer"
@@ -154,7 +154,7 @@ export default function GoalsPage() {
                 <div className="flex items-center justify-between mb-2">
                   <h3
                     className={`font-medium ${
-                      goal.status === 'completed' ? 'line-through text-gray-500' : ''
+                      goal.status === 'completed' ? 'line-through text-fg-muted' : ''
                     }`}
                   >
                     {goal.title}
@@ -167,48 +167,48 @@ export default function GoalsPage() {
                     className={`text-xs px-2 py-1 rounded ${
                       goal.status === 'completed'
                         ? 'bg-green-500/20 text-green-400'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        : 'bg-surface text-fg-secondary hover:bg-surface-hover'
                     }`}
                   >
                     {goal.status === 'completed' ? 'Done' : 'Mark Done'}
                   </button>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-bar-track rounded-full h-2">
                   <div
                     className="bg-blue-500 h-2 rounded-full transition-all"
                     style={{ width: `${getProgress(goal)}%` }}
                   />
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  <p className="text-xs text-gray-400">{getProgress(goal)}% complete</p>
+                  <p className="text-xs text-fg-secondary">{getProgress(goal)}% complete</p>
                   {goal.targetDate && (
-                    <p className="text-xs text-gray-500">Due: {goal.targetDate}</p>
+                    <p className="text-xs text-fg-muted">Due: {goal.targetDate}</p>
                   )}
                 </div>
               </div>
 
               {expandedId === goal.id && (
-                <div className="mt-3 pt-3 border-t border-gray-700/50">
+                <div className="mt-3 pt-3 border-t border-card-border">
                   <div className="space-y-2 mb-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Description</label>
+                      <label className="text-xs text-fg-secondary block mb-1">Description</label>
                       <textarea
                         value={goal.description}
                         onChange={(e) => updateGoalField(goal.id, 'description', e.target.value)}
                         placeholder="Describe this goal..."
                         rows={2}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        className="w-full bg-input border border-input-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Target Date</label>
+                      <label className="text-xs text-fg-secondary block mb-1">Target Date</label>
                       <input
                         type="date"
                         value={goal.targetDate}
                         onChange={(e) => updateGoalField(goal.id, 'targetDate', e.target.value)}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="bg-input border border-input-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
@@ -224,14 +224,14 @@ export default function GoalsPage() {
                             className={`w-5 h-5 rounded border flex items-center justify-center text-xs transition-colors ${
                               milestone.completed
                                 ? 'border-green-500 bg-green-500/20 text-green-400'
-                                : 'border-gray-600 hover:border-gray-400'
+                                : 'border-input-border hover:border-fg-secondary'
                             }`}
                           >
                             {milestone.completed && '✓'}
                           </button>
                           <span
                             className={`text-sm ${
-                              milestone.completed ? 'line-through text-gray-500' : 'text-gray-300'
+                              milestone.completed ? 'line-through text-fg-muted' : 'text-fg-secondary'
                             }`}
                           >
                             {milestone.title}
@@ -250,7 +250,7 @@ export default function GoalsPage() {
                         onKeyDown={(e) => e.key === 'Enter' && addMilestone(goal.id)}
                         placeholder="Milestone title..."
                         autoFocus
-                        className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 bg-input border border-input-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button
                         onClick={() => addMilestone(goal.id)}
@@ -263,7 +263,7 @@ export default function GoalsPage() {
                           setAddingMilestoneFor(null);
                           setNewMilestoneTitle('');
                         }}
-                        className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors"
+                        className="text-xs bg-surface hover:bg-surface-hover px-2 py-1 rounded transition-colors"
                       >
                         Cancel
                       </button>
@@ -282,7 +282,7 @@ export default function GoalsPage() {
                             e.stopPropagation();
                             archiveGoal(goal.id);
                           }}
-                          className="text-xs text-gray-500 hover:text-yellow-400 transition-colors"
+                          className="text-xs text-fg-muted hover:text-yellow-400 transition-colors"
                         >
                           {goal.status === 'archived' ? 'Unarchive' : 'Archive'}
                         </button>
@@ -291,7 +291,7 @@ export default function GoalsPage() {
                             e.stopPropagation();
                             deleteGoal(goal.id);
                           }}
-                          className="text-xs text-gray-500 hover:text-red-400 transition-colors"
+                          className="text-xs text-fg-muted hover:text-red-400 transition-colors"
                         >
                           Delete
                         </button>

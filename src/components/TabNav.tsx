@@ -10,6 +10,7 @@ const tabs = [
   { href: '/goals', label: 'Goals', icon: '🎯' },
   { href: '/daily', label: 'Daily', icon: '📝' },
   { href: '/skills', label: 'Skills', icon: '⚡' },
+  { href: '/review', label: 'Review', icon: '📊' },
 ];
 
 export default function TabNav() {

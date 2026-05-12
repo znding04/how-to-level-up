@@ -117,7 +117,7 @@ export default function SkillsPage() {
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addSkill()}
           placeholder="New skill..."
-          className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={addSkill}
@@ -128,7 +128,7 @@ export default function SkillsPage() {
       </div>
 
       {skills.length === 0 ? (
-        <p className="text-gray-500 text-center mt-12">
+        <p className="text-fg-muted text-center mt-12">
           No skills yet. Add one to start tracking!
         </p>
       ) : (
@@ -136,7 +136,7 @@ export default function SkillsPage() {
           {skills.map((skill) => (
             <div
               key={skill.id}
-              className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4"
+              className="bg-card border border-card-border rounded-xl p-4"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -155,7 +155,7 @@ export default function SkillsPage() {
                           if (e.key === 'Escape') setEditingId(null);
                         }}
                         autoFocus
-                        className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="bg-input border border-input-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button
                         onClick={() => saveEditSkill(skill.id)}
@@ -165,7 +165,7 @@ export default function SkillsPage() {
                       </button>
                       <button
                         onClick={() => setEditingId(null)}
-                        className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors"
+                        className="text-xs bg-surface hover:bg-surface-hover px-2 py-1 rounded transition-colors"
                       >
                         Cancel
                       </button>
@@ -175,21 +175,21 @@ export default function SkillsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs bg-gray-700 px-2 py-1 rounded">
+                  <span className="text-xs bg-surface px-2 py-1 rounded">
                     {getLevel(skill)}
                   </span>
                   {editingId !== skill.id && (
                     <>
                       <button
                         onClick={() => startEditSkill(skill)}
-                        className="text-gray-500 hover:text-gray-300 transition-colors"
+                        className="text-fg-muted hover:text-fg-secondary transition-colors"
                         title="Edit"
                       >
                         ✏️
                       </button>
                       <button
                         onClick={() => deleteSkill(skill.id)}
-                        className="text-gray-500 hover:text-red-400 transition-colors"
+                        className="text-fg-muted hover:text-red-400 transition-colors"
                         title="Delete"
                       >
                         🗑️
@@ -200,31 +200,31 @@ export default function SkillsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-fg-secondary">
                     {getTotalHours(skill)}h total &middot; {skill.sessions.length} sessions
                   </p>
                   {getLastSession(skill) && (
-                    <p className="text-xs text-gray-500">Last: {getLastSession(skill)}</p>
+                    <p className="text-xs text-fg-muted">Last: {getLastSession(skill)}</p>
                   )}
                 </div>
                 <button
                   onClick={() => startLogging(skill.id)}
-                  className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded transition-colors"
+                  className="text-xs bg-surface hover:bg-surface-hover px-2 py-1 rounded transition-colors"
                 >
                   Log session
                 </button>
               </div>
 
               {loggingId === skill.id && (
-                <div className="mt-3 pt-3 border-t border-gray-700/50 space-y-2">
+                <div className="mt-3 pt-3 border-t border-card-border space-y-2">
                   <div className="flex items-center gap-2">
-                    <label className="text-xs text-gray-400">Duration (min):</label>
+                    <label className="text-xs text-fg-secondary">Duration (min):</label>
                     <input
                       type="number"
                       value={sessionDuration}
                       onChange={(e) => setSessionDuration(Number(e.target.value))}
                       min={1}
-                      className="w-20 bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-20 bg-input border border-input-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div>
@@ -233,19 +233,19 @@ export default function SkillsPage() {
                       value={sessionNotes}
                       onChange={(e) => setSessionNotes(e.target.value)}
                       placeholder="Notes (optional)..."
-                      className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full bg-input border border-input-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => saveSession(skill.id)}
-                      className="text-xs bg-green-600 hover:bg-green-500 px-3 py-1 rounded transition-colors"
+                      className="text-xs bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-white transition-colors"
                     >
                       Save
                     </button>
                     <button
                       onClick={() => setLoggingId(null)}
-                      className="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded transition-colors"
+                      className="text-xs bg-surface hover:bg-surface-hover px-3 py-1 rounded transition-colors"
                     >
                       Cancel
                     </button>

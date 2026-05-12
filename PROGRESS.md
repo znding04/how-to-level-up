@@ -28,10 +28,20 @@
 - **Theme toggle button** in TabNav: Sun SVG in dark mode (click for light), moon SVG in light mode (click for dark)
 - **No FOUC**: localStorage check on client-side useEffect prevents flash of wrong theme
 
+## 2026-05-12
+### Added: Weekly Review Page + Theme Bug Fix
+- **Weekly Review page** (`/review`): New page accessible via "Review" tab in bottom nav
+- **Overview cards**: Habit completion rate, skills practice hours, average mood, and average energy — each with week-over-week comparison
+- **Daily habit breakdown**: Vertical bar chart showing day-by-day completion, plus per-habit progress bars with color coding
+- **Weekly habits section**: Shows done/not-yet status for weekly-frequency habits
+- **Skills breakdown**: Per-skill practice hours with proportional bars, session count
+- **Mood & Energy timeline**: Day-by-day emoji timeline with notes
+- **Goals summary**: Active goals with milestone progress bars
+- **Week navigation**: Browse previous weeks with arrow buttons
+- **Theme bug fix**: Updated Goals, Daily Check-in, and Skills pages to use CSS variable classes (`bg-card`, `text-fg-secondary`, etc.) instead of hardcoded `bg-gray-800`/`text-gray-400` — these pages now correctly respond to the dark/light theme toggle
+
 ## Future Ideas
 - Deploy to a free host (Vercel, Cloudflare Pages, Netlify)
 - PWA: Add to home screen prompt
-- Weekly review page
 - Milestone notifications/reminders
-- Dark/light theme toggle
 - Multiple data profiles
