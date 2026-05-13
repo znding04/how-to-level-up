@@ -40,8 +40,16 @@
 - **Week navigation**: Browse previous weeks with arrow buttons
 - **Theme bug fix**: Updated Goals, Daily Check-in, and Skills pages to use CSS variable classes (`bg-card`, `text-fg-secondary`, etc.) instead of hardcoded `bg-gray-800`/`text-gray-400` — these pages now correctly respond to the dark/light theme toggle
 
+## 2026-05-13
+### Added: PWA Install Prompt
+- **InstallPrompt component** (`src/components/InstallPrompt.tsx`): Client component that listens for the `beforeinstallprompt` event and shows a floating install banner above the bottom nav
+- **One-time display**: Tracks dismissal in localStorage (`pwa-install-dismissed`) so the banner only appears once per device
+- **Install flow**: "Install" button triggers the native browser install prompt; "Not now" dismisses and persists the choice
+- **Theme-aware styling**: Uses CSS variable classes (`bg-card`, `text-foreground`, `text-fg-secondary`, `border-border`) for dark/light compatibility
+- **Layout integration**: Added InstallPrompt to root layout inside ThemeProvider
+
 ## Future Ideas
 - Deploy to a free host (Vercel, Cloudflare Pages, Netlify)
-- PWA: Add to home screen prompt
+- ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
 - Milestone notifications/reminders
 - Multiple data profiles

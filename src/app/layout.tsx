@@ -4,6 +4,7 @@ import "./globals.css";
 import TabNav from "@/components/TabNav";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import ThemeProvider from "@/components/ThemeProvider";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider>
           <ServiceWorkerRegistrar />
+          <InstallPrompt />
           <main className="flex-1 pb-20 max-w-lg mx-auto w-full px-4 pt-6">
             {children}
           </main>
