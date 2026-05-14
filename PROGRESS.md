@@ -48,8 +48,15 @@
 - **Theme-aware styling**: Uses CSS variable classes (`bg-card`, `text-foreground`, `text-fg-secondary`, `border-border`) for dark/light compatibility
 - **Layout integration**: Added InstallPrompt to root layout inside ThemeProvider
 
+## 2026-05-14
+### Added: Static Export Config for Cloudflare Pages
+- **Static export** (`next.config.ts`): Added `output: 'export'` and `images: { unoptimized: true }` for full static site generation
+- **Build verified**: All 9 routes (/, dashboard, habits, habits/trends, goals, daily, skills, review, 404) export to `out/` directory
+- **Deploy ready**: Static files in `out/` ready for `wrangler pages deploy` — requires Cloudflare auth (API token or `wrangler login`)
+- **No code changes needed**: App is fully client-side with localStorage, no API routes — static export works perfectly
+
 ## Future Ideas
-- Deploy to a free host (Vercel, Cloudflare Pages, Netlify)
+- ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
 - Milestone notifications/reminders
 - Multiple data profiles
