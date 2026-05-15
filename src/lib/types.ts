@@ -46,6 +46,13 @@ export interface SkillSession {
   notes: string;
 }
 
+export interface NotificationSettings {
+  dailyReminder: boolean;
+  dailyReminderTime: string; // HH:MM
+  goalAlerts: boolean;
+  streakAlerts: boolean;
+}
+
 export interface AppData {
   habits: Habit[];
   goals: Goal[];

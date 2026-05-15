@@ -5,6 +5,7 @@ import TabNav from "@/components/TabNav";
 import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import ThemeProvider from "@/components/ThemeProvider";
 import InstallPrompt from "@/components/InstallPrompt";
+import NotificationService from "@/components/NotificationService";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({
         <ThemeProvider>
           <ServiceWorkerRegistrar />
           <InstallPrompt />
+          <NotificationService />
           <main className="flex-1 pb-20 max-w-lg mx-auto w-full px-4 pt-6">
             {children}
           </main>

@@ -55,8 +55,18 @@
 - **Deploy ready**: Static files in `out/` ready for `wrangler pages deploy` — requires Cloudflare auth (API token or `wrangler login`)
 - **No code changes needed**: App is fully client-side with localStorage, no API routes — static export works perfectly
 
+## 2026-05-15
+### Added: Browser Notification System
+- **NotificationService** (`src/components/NotificationService.tsx`): Silent background component that checks notification conditions on page load — daily check-in reminders, goal deadline alerts (within 3 days or overdue), and an exported `checkStreakMilestone()` function for habit streak celebrations (7, 14, 30, 60, 90 days)
+- **NotificationSettings** (`src/components/NotificationSettings.tsx`): Toggle panel with switches for each notification type, time picker for daily reminder, permission status indicator, and lazy permission request
+- **Storage helpers** (`src/lib/storage.ts`): `loadNotificationSettings`, `saveNotificationSettings`, `getNotifiedGoals`, `markGoalNotified`, `clearDailyNotifications` — tracks notification preferences and prevents duplicate alerts per day
+- **NotificationSettings type** (`src/lib/types.ts`): `{ dailyReminder, dailyReminderTime, goalAlerts, streakAlerts }`
+- **Dashboard integration**: Bell icon button in header opens/closes the notification settings panel
+- **Layout integration**: NotificationService added to root layout for app-wide silent monitoring
+- Uses browser's built-in Notification API — no external libraries
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
-- Milestone notifications/reminders
+- ~~Milestone notifications/reminders~~ (done 2026-05-15)
 - Multiple data profiles
