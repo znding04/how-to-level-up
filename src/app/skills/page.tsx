@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData, saveData, generateId, todayString } from '@/lib/storage';
+import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
 import { Skill } from '@/lib/types';
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>(() => {
     if (typeof window === 'undefined') return [];
     const data = loadData();
-    return data.skills;
+    return loadProfileData(data).skills;
   });
   const [newName, setNewName] = useState('');
   const [loggingId, setLoggingId] = useState<string | null>(null);
@@ -20,13 +20,16 @@ export default function SkillsPage() {
   function persist(updated: Skill[]) {
     setSkills(updated);
     const data = loadData();
-    saveData({ ...data, skills: updated });
+    const otherSkills = data.skills.filter((s) => s.profileId !== data.activeProfileId);
+    saveData({ ...data, skills: [...otherSkills, ...updated] });
   }
 
   function addSkill() {
     if (!newName.trim()) return;
+    const data = loadData();
     const skill: Skill = {
       id: generateId(),
+      profileId: data.activeProfileId,
       name: newName.trim(),
       color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][
         Math.floor(Math.random() * 5)

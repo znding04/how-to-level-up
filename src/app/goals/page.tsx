@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData, saveData, generateId, todayString } from '@/lib/storage';
+import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
 import { Goal } from '@/lib/types';
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(() => {
     if (typeof window === 'undefined') return [];
     const data = loadData();
-    return data.goals;
+    return loadProfileData(data).goals;
   });
   const [newTitle, setNewTitle] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -19,13 +19,16 @@ export default function GoalsPage() {
   function persist(updated: Goal[]) {
     setGoals(updated);
     const data = loadData();
-    saveData({ ...data, goals: updated });
+    const otherGoals = data.goals.filter((g) => g.profileId !== data.activeProfileId);
+    saveData({ ...data, goals: [...otherGoals, ...updated] });
   }
 
   function addGoal() {
     if (!newTitle.trim()) return;
+    const data = loadData();
     const goal: Goal = {
       id: generateId(),
+      profileId: data.activeProfileId,
       title: newTitle.trim(),
       description: '',
       targetDate: '',

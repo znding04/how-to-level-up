@@ -65,8 +65,18 @@
 - **Layout integration**: NotificationService added to root layout for app-wide silent monitoring
 - Uses browser's built-in Notification API — no external libraries
 
+## 2026-05-16
+### Added: Multiple Data Profiles
+- **Profile type** (`src/lib/types.ts`): New `Profile { id, name, createdAt }` interface; added `profileId` field to `Habit`, `Goal`, `DailyLog`, `Skill` interfaces; updated `AppData` with `profiles[]` and `activeProfileId`
+- **Profile storage** (`src/lib/storage.ts`): `createProfile`, `renameProfile`, `deleteProfile`, `setActiveProfile`, `getActiveProfile`, `loadProfileData` helpers; automatic migration from old format — existing data assigned to a default "Personal" profile
+- **ProfileSelector** (`src/components/ProfileSelector.tsx`): Compact dropdown in dashboard header showing current profile with chevron; lists all profiles for quick switching; "Manage Profiles" sub-panel for create/rename/delete; delete requires 2+ profiles with confirmation dialog
+- **Dashboard integration**: Profile badge shown when multiple profiles exist; ProfileSelector accessible from header alongside notification bell
+- **Data isolation**: All pages (habits, goals, daily, skills, review, trends) filter data by active profile; new items get `profileId` from `activeProfileId`; persist functions merge profile data without affecting other profiles
+- **Notification awareness**: NotificationService checks only the active profile's data for reminders and alerts
+- Switching profiles instantly re-renders all UI with that profile's data
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
 - ~~Milestone notifications/reminders~~ (done 2026-05-15)
-- Multiple data profiles
+- ~~Multiple data profiles~~ (done 2026-05-16)

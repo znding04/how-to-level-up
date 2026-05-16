@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { loadData, saveData, generateId, todayString } from '@/lib/storage';
+import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
 import { Habit } from '@/lib/types';
 
 const PRESET_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -11,7 +11,7 @@ export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>(() => {
     if (typeof window === 'undefined') return [];
     const data = loadData();
-    return data.habits;
+    return loadProfileData(data).habits;
   });
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -23,13 +23,17 @@ export default function HabitsPage() {
   function persist(updated: Habit[]) {
     setHabits(updated);
     const data = loadData();
-    saveData({ ...data, habits: updated });
+    // Replace only habits for the active profile, keep other profiles' habits
+    const otherHabits = data.habits.filter((h) => h.profileId !== data.activeProfileId);
+    saveData({ ...data, habits: [...otherHabits, ...updated] });
   }
 
   function addHabit() {
     if (!newName.trim()) return;
+    const data = loadData();
     const habit: Habit = {
       id: generateId(),
+      profileId: data.activeProfileId,
       name: newName.trim(),
       frequency: 'daily',
       color: PRESET_COLORS[Math.floor(Math.random() * 5)],
@@ -95,7 +99,6 @@ export default function HabitsPage() {
     if (dates.length === 0) return 0;
 
     if (habit.frequency === 'weekly') {
-      // For weekly habits, count consecutive weeks with at least one completion
       const weeks = new Set<string>();
       for (const date of dates) {
         const d = new Date(date + 'T00:00:00');
@@ -151,13 +154,11 @@ export default function HabitsPage() {
   function getWeeklyStreak(habit: Habit): number {
     let streak = 0;
     const d = new Date();
-    // Go to the Monday of the current week
     const day = d.getDay();
     const diffToMonday = day === 0 ? 6 : day - 1;
     d.setDate(d.getDate() - diffToMonday);
 
     while (true) {
-      // Check if any day Mon-Sun of this week has a completion
       let weekCompleted = false;
       for (let i = 0; i < 7; i++) {
         const check = new Date(d);

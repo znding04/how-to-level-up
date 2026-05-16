@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData, saveData, generateId, todayString } from '@/lib/storage';
+import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
 import { DailyLog } from '@/lib/types';
 
 export default function DailyPage() {
@@ -9,43 +9,49 @@ export default function DailyPage() {
   const [logs, setLogs] = useState<DailyLog[]>(() => {
     if (typeof window === 'undefined') return [];
     const data = loadData();
-    return data.dailyLogs;
+    return loadProfileData(data).dailyLogs;
   });
   const [mood, setMood] = useState<number>(() => {
     if (typeof window === 'undefined') return 3;
     const data = loadData();
-    const todayLog = data.dailyLogs.find((l) => l.date === today);
+    const profileLogs = loadProfileData(data).dailyLogs;
+    const todayLog = profileLogs.find((l) => l.date === today);
     return todayLog ? todayLog.mood : 3;
   });
   const [energy, setEnergy] = useState<number>(() => {
     if (typeof window === 'undefined') return 3;
     const data = loadData();
-    const todayLog = data.dailyLogs.find((l) => l.date === today);
+    const profileLogs = loadProfileData(data).dailyLogs;
+    const todayLog = profileLogs.find((l) => l.date === today);
     return todayLog ? todayLog.energy : 3;
   });
   const [notes, setNotes] = useState(() => {
     if (typeof window === 'undefined') return '';
     const data = loadData();
-    const todayLog = data.dailyLogs.find((l) => l.date === today);
+    const profileLogs = loadProfileData(data).dailyLogs;
+    const todayLog = profileLogs.find((l) => l.date === today);
     return todayLog ? todayLog.notes : '';
   });
 
   function saveLog() {
     const data = loadData();
-    const existing = data.dailyLogs.findIndex((l) => l.date === today);
+    const profileLogs = loadProfileData(data).dailyLogs;
+    const existing = profileLogs.findIndex((l) => l.date === today);
     const log: DailyLog = {
-      id: existing >= 0 ? data.dailyLogs[existing].id : generateId(),
+      id: existing >= 0 ? profileLogs[existing].id : generateId(),
+      profileId: data.activeProfileId,
       date: today,
       mood: mood as DailyLog['mood'],
       energy: energy as DailyLog['energy'],
       notes,
     };
-    const updated =
+    const updatedProfileLogs =
       existing >= 0
-        ? data.dailyLogs.map((l, i) => (i === existing ? log : l))
-        : [...data.dailyLogs, log];
-    saveData({ ...data, dailyLogs: updated });
-    setLogs(updated);
+        ? profileLogs.map((l, i) => (i === existing ? log : l))
+        : [...profileLogs, log];
+    const otherLogs = data.dailyLogs.filter((l) => l.profileId !== data.activeProfileId);
+    saveData({ ...data, dailyLogs: [...otherLogs, ...updatedProfileLogs] });
+    setLogs(updatedProfileLogs);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }

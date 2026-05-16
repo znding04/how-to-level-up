@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData } from '@/lib/storage';
+import { loadData, loadProfileData } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 
 function getWeekRange(weeksAgo: number): { start: Date; end: Date; dates: string[] } {
@@ -33,7 +33,11 @@ function formatDate(d: Date): string {
 const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function ReviewPage() {
-  const [data] = useState<AppData>(() => loadData());
+  const [fullData] = useState<AppData>(() => loadData());
+  const data = {
+    ...fullData,
+    ...loadProfileData(fullData),
+  };
   const [weeksAgo, setWeeksAgo] = useState(0);
 
   const week = getWeekRange(weeksAgo);

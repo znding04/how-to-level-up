@@ -1,5 +1,12 @@
+export interface Profile {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface Habit {
   id: string;
+  profileId: string;
   name: string;
   frequency: 'daily' | 'weekly';
   color: string;
@@ -9,6 +16,7 @@ export interface Habit {
 
 export interface Goal {
   id: string;
+  profileId: string;
   title: string;
   description: string;
   targetDate: string;
@@ -25,6 +33,7 @@ export interface Milestone {
 
 export interface DailyLog {
   id: string;
+  profileId: string;
   date: string;
   mood: 1 | 2 | 3 | 4 | 5;
   energy: 1 | 2 | 3 | 4 | 5;
@@ -33,6 +42,7 @@ export interface DailyLog {
 
 export interface Skill {
   id: string;
+  profileId: string;
   name: string;
   color: string;
   sessions: SkillSession[];
@@ -54,6 +64,8 @@ export interface NotificationSettings {
 }
 
 export interface AppData {
+  profiles: Profile[];
+  activeProfileId: string;
   habits: Habit[];
   goals: Goal[];
   dailyLogs: DailyLog[];

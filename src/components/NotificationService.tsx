@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import {
   loadData,
+  loadProfileData,
   loadNotificationSettings,
   getNotifiedGoals,
   markGoalNotified,
@@ -29,7 +30,8 @@ export default function NotificationService() {
     if (Notification.permission !== 'granted') return;
 
     const settings = loadNotificationSettings();
-    const data = loadData();
+    const fullData = loadData();
+    const data = loadProfileData(fullData);
     const today = todayString();
 
     // Daily reminder check

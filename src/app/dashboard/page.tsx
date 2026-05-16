@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { loadData, saveData, todayString } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import Link from 'next/link';
 import NotificationSettingsPanel from '@/components/NotificationSettings';
+import ProfileSelector from '@/components/ProfileSelector';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -38,17 +39,19 @@ export default function DashboardPage() {
   }, []);
 
   const today = todayString();
+  const profileData = loadProfileData(data);
+  const activeProfile = data.profiles.find((p) => p.id === data.activeProfileId);
 
   // Habits summary
-  const totalHabits = data.habits.length;
-  const completedToday = data.habits.filter((h) => h.completions[today]).length;
-  const uncheckedHabits = data.habits.filter((h) => !h.completions[today]);
+  const totalHabits = profileData.habits.length;
+  const completedToday = profileData.habits.filter((h) => h.completions[today]).length;
+  const uncheckedHabits = profileData.habits.filter((h) => !h.completions[today]);
 
   // Daily check-in
-  const todayLog = data.dailyLogs.find((l) => l.date === today);
+  const todayLog = profileData.dailyLogs.find((l) => l.date === today);
 
   // Goals progress
-  const activeGoals = data.goals.filter((g) => g.status === 'active');
+  const activeGoals = profileData.goals.filter((g) => g.status === 'active');
   const allMilestones = activeGoals.flatMap((g) => g.milestones);
   const completedMilestones = allMilestones.filter((m) => m.completed).length;
   const goalPercent =
@@ -58,7 +61,7 @@ export default function DashboardPage() {
 
   // Skills - hours this week
   const weekDates = getWeekDates();
-  const weekMinutes = data.skills.reduce((sum, skill) => {
+  const weekMinutes = profileData.skills.reduce((sum, skill) => {
     return (
       sum +
       skill.sessions
@@ -74,7 +77,7 @@ export default function DashboardPage() {
     const d = new Date();
     while (true) {
       const dateStr = d.toISOString().split('T')[0];
-      const anyCompleted = data.habits.some((h) => h.completions[dateStr]);
+      const anyCompleted = profileData.habits.some((h) => h.completions[dateStr]);
       if (!anyCompleted) break;
       streak++;
       d.setDate(d.getDate() - 1);
@@ -124,7 +127,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      {/* Greeting */}
+      {/* Greeting + Profile */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold">{getGreeting()}</h1>
@@ -136,17 +139,29 @@ export default function DashboardPage() {
             })}
           </p>
         </div>
-        <button
-          onClick={() => setShowNotifSettings(!showNotifSettings)}
-          className="p-2 rounded-xl bg-surface hover:bg-surface-hover transition-colors text-fg-secondary"
-          aria-label="Notification settings"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          <ProfileSelector data={data} onDataChange={setData} />
+          <button
+            onClick={() => setShowNotifSettings(!showNotifSettings)}
+            className="p-2 rounded-xl bg-surface hover:bg-surface-hover transition-colors text-fg-secondary"
+            aria-label="Notification settings"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {/* Active Profile Badge */}
+      {activeProfile && data.profiles.length > 1 && (
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded-full">
+            {activeProfile.name}
+          </span>
+        </div>
+      )}
 
       {/* Notification Settings Panel */}
       {showNotifSettings && (
@@ -276,7 +291,7 @@ export default function DashboardPage() {
               hrs this week
             </span>
           </p>
-          {data.skills.length === 0 && (
+          {profileData.skills.length === 0 && (
             <p className="text-fg-muted text-sm mt-1">
               No skills tracked yet — start one!
             </p>

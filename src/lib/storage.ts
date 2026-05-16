@@ -1,20 +1,67 @@
-import { AppData, NotificationSettings } from './types';
+import { AppData, NotificationSettings, Profile } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
+const DEFAULT_PROFILE_ID = 'default-personal';
+
+function createDefaultProfile(): Profile {
+  return {
+    id: DEFAULT_PROFILE_ID,
+    name: 'Personal',
+    createdAt: new Date().toISOString().split('T')[0],
+  };
+}
+
 const defaultData: AppData = {
+  profiles: [createDefaultProfile()],
+  activeProfileId: DEFAULT_PROFILE_ID,
   habits: [],
   goals: [],
   dailyLogs: [],
   skills: [],
 };
 
+// Migrate old-format data (no profiles) to new format
+function migrateData(raw: Record<string, unknown>): AppData {
+  // Already migrated
+  if (Array.isArray(raw.profiles) && raw.activeProfileId) {
+    return raw as unknown as AppData;
+  }
+
+  // Old format: no profiles — migrate existing data into a default profile
+  const profile = createDefaultProfile();
+  const profileId = profile.id;
+
+  const habits = (Array.isArray(raw.habits) ? raw.habits : []).map(
+    (h: Record<string, unknown>) => ({ ...h, profileId: h.profileId || profileId })
+  );
+  const goals = (Array.isArray(raw.goals) ? raw.goals : []).map(
+    (g: Record<string, unknown>) => ({ ...g, profileId: g.profileId || profileId })
+  );
+  const dailyLogs = (Array.isArray(raw.dailyLogs) ? raw.dailyLogs : []).map(
+    (l: Record<string, unknown>) => ({ ...l, profileId: l.profileId || profileId })
+  );
+  const skills = (Array.isArray(raw.skills) ? raw.skills : []).map(
+    (s: Record<string, unknown>) => ({ ...s, profileId: s.profileId || profileId })
+  );
+
+  return {
+    profiles: [profile],
+    activeProfileId: profileId,
+    habits,
+    goals,
+    dailyLogs,
+    skills,
+  } as AppData;
+}
+
 export function loadData(): AppData {
   if (typeof window === 'undefined') return defaultData;
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return defaultData;
   try {
-    return JSON.parse(raw) as AppData;
+    const parsed = JSON.parse(raw);
+    return migrateData(parsed);
   } catch {
     return defaultData;
   }
@@ -23,6 +70,83 @@ export function loadData(): AppData {
 export function saveData(data: AppData): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+export function getActiveProfileId(): string {
+  const data = loadData();
+  return data.activeProfileId;
+}
+
+export function getActiveProfile(): Profile | undefined {
+  const data = loadData();
+  return data.profiles.find((p) => p.id === data.activeProfileId);
+}
+
+export function setActiveProfile(profileId: string): AppData {
+  const data = loadData();
+  const updated = { ...data, activeProfileId: profileId };
+  saveData(updated);
+  return updated;
+}
+
+export function createProfile(name: string): AppData {
+  const data = loadData();
+  const profile: Profile = {
+    id: generateId(),
+    name,
+    createdAt: new Date().toISOString().split('T')[0],
+  };
+  const updated = {
+    ...data,
+    profiles: [...data.profiles, profile],
+  };
+  saveData(updated);
+  return updated;
+}
+
+export function renameProfile(profileId: string, newName: string): AppData {
+  const data = loadData();
+  const updated = {
+    ...data,
+    profiles: data.profiles.map((p) =>
+      p.id === profileId ? { ...p, name: newName } : p
+    ),
+  };
+  saveData(updated);
+  return updated;
+}
+
+export function deleteProfile(profileId: string): AppData {
+  const data = loadData();
+  if (data.profiles.length <= 1) return data;
+
+  const updated: AppData = {
+    ...data,
+    profiles: data.profiles.filter((p) => p.id !== profileId),
+    habits: data.habits.filter((h) => h.profileId !== profileId),
+    goals: data.goals.filter((g) => g.profileId !== profileId),
+    dailyLogs: data.dailyLogs.filter((l) => l.profileId !== profileId),
+    skills: data.skills.filter((s) => s.profileId !== profileId),
+  };
+
+  // If the deleted profile was active, switch to the first remaining profile
+  if (updated.activeProfileId === profileId) {
+    updated.activeProfileId = updated.profiles[0].id;
+  }
+
+  saveData(updated);
+  return updated;
+}
+
+// Helper to get data filtered by active profile
+export function loadProfileData(data: AppData) {
+  const pid = data.activeProfileId;
+  return {
+    habits: data.habits.filter((h) => h.profileId === pid),
+    goals: data.goals.filter((g) => g.profileId === pid),
+    dailyLogs: data.dailyLogs.filter((l) => l.profileId === pid),
+    skills: data.skills.filter((s) => s.profileId === pid),
+  };
 }
 
 export function generateId(): string {

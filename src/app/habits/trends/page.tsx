@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { loadData } from '@/lib/storage';
+import { loadData, loadProfileData } from '@/lib/storage';
 import { Habit } from '@/lib/types';
 
 const WEEKS = 12;
@@ -23,7 +23,8 @@ function getMondayOfWeek(d: Date): Date {
 export default function HabitTrendsPage() {
   const [habits] = useState<Habit[]>(() => {
     if (typeof window === 'undefined') return [];
-    return loadData().habits;
+    const data = loadData();
+    return loadProfileData(data).habits;
   });
   const [selectedHabitId, setSelectedHabitId] = useState<string>('all');
 
