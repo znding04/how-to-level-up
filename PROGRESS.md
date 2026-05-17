@@ -75,6 +75,13 @@
 - **Notification awareness**: NotificationService checks only the active profile's data for reminders and alerts
 - Switching profiles instantly re-renders all UI with that profile's data
 
+## 2026-05-17
+### Added: Dashboard Quick Actions
+- **Today's Habits Checklist** (`src/app/dashboard/page.tsx`): New Quick Actions section below stats cards — lists all daily-frequency habits from the active profile with checkboxes; checking/unchecking toggles completion in localStorage immediately; completed habits show strikethrough; shows "All done for today! 🔥" when all are done; links to /habits if none exist
+- **Quick Daily Check-in Form**: Compact mood selector (😞😕😐🙂😄), energy selector (🪫😴😐⚡🔥), optional notes textarea, "Log Day"/"Update" button; pre-fills from existing today's log if one exists; shows green "✓ Saved!" success flash on submit
+- Uses same bg-card/border-card-border styling as existing cards, fully theme-compatible
+- No new dependencies; leverages existing storage helpers and types
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
