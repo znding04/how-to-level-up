@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { loadData, saveData, loadProfileData, todayString } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import Link from 'next/link';
 import NotificationSettingsPanel from '@/components/NotificationSettings';
@@ -32,6 +32,10 @@ function getWeekDates(): string[] {
 export default function DashboardPage() {
   const [data, setData] = useState<AppData>(() => loadData());
   const [showNotifSettings, setShowNotifSettings] = useState(false);
+  const [quickMood, setQuickMood] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
+  const [quickEnergy, setQuickEnergy] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
+  const [quickNotes, setQuickNotes] = useState('');
+  const [logSuccess, setLogSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -82,6 +86,56 @@ export default function DashboardPage() {
       streak++;
       d.setDate(d.getDate() - 1);
     }
+  }
+
+  // Daily habits for quick actions
+  const dailyHabits = profileData.habits.filter((h) => h.frequency === 'daily');
+
+  // Pre-fill quick check-in form from existing log
+  useEffect(() => {
+    if (todayLog) {
+      setQuickMood(todayLog.mood);
+      setQuickEnergy(todayLog.energy);
+      setQuickNotes(todayLog.notes || '');
+    }
+  }, [todayLog]);
+
+  function handleToggleHabit(habitId: string) {
+    const updated = { ...data };
+    const habit = updated.habits.find((h) => h.id === habitId);
+    if (!habit) return;
+    if (habit.completions[today]) {
+      delete habit.completions[today];
+    } else {
+      habit.completions[today] = true;
+    }
+    saveData(updated);
+    setData({ ...updated });
+  }
+
+  function handleQuickLog() {
+    if (!quickMood || !quickEnergy) return;
+    const updated = { ...data };
+    const existingIndex = updated.dailyLogs.findIndex(
+      (l) => l.date === today && l.profileId === data.activeProfileId
+    );
+    const log = {
+      id: existingIndex >= 0 ? updated.dailyLogs[existingIndex].id : generateId(),
+      profileId: data.activeProfileId,
+      date: today,
+      mood: quickMood,
+      energy: quickEnergy,
+      notes: quickNotes,
+    };
+    if (existingIndex >= 0) {
+      updated.dailyLogs[existingIndex] = log;
+    } else {
+      updated.dailyLogs.push(log);
+    }
+    saveData(updated);
+    setData({ ...updated });
+    setLogSuccess(true);
+    setTimeout(() => setLogSuccess(false), 2000);
   }
 
   const moodEmojis = ['', '😞', '😐', '🙂', '😊', '🤩'];
@@ -181,6 +235,115 @@ export default function DashboardPage() {
           </p>
         </div>
       )}
+
+      {/* Quick Actions Panel */}
+      <div className="bg-card border border-card-border rounded-2xl p-4 space-y-4">
+        <h2 className="font-semibold text-lg">⚡ Quick Actions</h2>
+
+        {/* Today's Habits Checklist */}
+        <div>
+          <h3 className="text-sm font-medium text-fg-secondary mb-2">Today&apos;s Daily Habits</h3>
+          {dailyHabits.length === 0 ? (
+            <p className="text-fg-muted text-sm">No daily habits yet — <Link href="/habits" className="text-blue-400 underline">add one</Link></p>
+          ) : dailyHabits.every((h) => h.completions[today]) ? (
+            <p className="text-green-400 text-sm font-medium">All done for today! 🔥</p>
+          ) : null}
+          {dailyHabits.length > 0 && (
+            <div className="space-y-2">
+              {dailyHabits.map((h) => (
+                <label key={h.id} className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={!!h.completions[today]}
+                    onChange={() => handleToggleHabit(h.id)}
+                    className="w-5 h-5 rounded border-2 border-gray-500 accent-blue-500 cursor-pointer"
+                  />
+                  <span
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: h.color }}
+                  />
+                  <span className={`text-sm ${h.completions[today] ? 'line-through text-fg-muted' : 'text-foreground'}`}>
+                    {h.name}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-border" />
+
+        {/* Quick Daily Check-in */}
+        <div>
+          <h3 className="text-sm font-medium text-fg-secondary mb-3">Quick Check-in</h3>
+          <div className="space-y-3">
+            {/* Mood */}
+            <div>
+              <label className="text-xs text-fg-muted block mb-1">Mood</label>
+              <div className="flex gap-2">
+                {([1, 2, 3, 4, 5] as const).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setQuickMood(v)}
+                    className={`text-2xl p-1 rounded-lg transition-all ${
+                      quickMood === v
+                        ? 'bg-blue-500/20 scale-110 ring-2 ring-blue-500/50'
+                        : 'hover:bg-surface-hover'
+                    }`}
+                  >
+                    {['😞', '😕', '😐', '🙂', '😄'][v - 1]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Energy */}
+            <div>
+              <label className="text-xs text-fg-muted block mb-1">Energy</label>
+              <div className="flex gap-2">
+                {([1, 2, 3, 4, 5] as const).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setQuickEnergy(v)}
+                    className={`text-2xl p-1 rounded-lg transition-all ${
+                      quickEnergy === v
+                        ? 'bg-blue-500/20 scale-110 ring-2 ring-blue-500/50'
+                        : 'hover:bg-surface-hover'
+                    }`}
+                  >
+                    {['🪫', '😴', '😐', '⚡', '🔥'][v - 1]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Notes */}
+            <textarea
+              value={quickNotes}
+              onChange={(e) => setQuickNotes(e.target.value)}
+              placeholder="How's your day going?"
+              rows={2}
+              className="w-full bg-surface border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-fg-muted resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            />
+
+            {/* Submit */}
+            <button
+              onClick={handleQuickLog}
+              disabled={!quickMood || !quickEnergy}
+              className={`w-full py-2 rounded-xl text-sm font-medium transition-all ${
+                logSuccess
+                  ? 'bg-green-500 text-white'
+                  : !quickMood || !quickEnergy
+                    ? 'bg-surface-dim text-fg-muted cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-500 text-white'
+              }`}
+            >
+              {logSuccess ? '✓ Saved!' : todayLog ? 'Update' : 'Log Day'}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Habits Summary */}
       <Link href="/habits" className="block">
