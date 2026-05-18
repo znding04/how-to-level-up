@@ -82,8 +82,22 @@
 - Uses same bg-card/border-card-border styling as existing cards, fully theme-compatible
 - No new dependencies; leverages existing storage helpers and types
 
+## 2026-05-18
+### Added: Settings Page
+- **Settings page** (`/settings`): New dedicated page with 5 collapsible accordion sections:
+  1. **Profile Management** — list profiles, inline rename, delete with confirmation, create new
+  2. **Notifications** — embeds NotificationSettings directly (daily reminder, goal alerts, streak alerts, permission)
+  3. **Appearance** — dark/light theme toggle (moved from TabNav)
+  4. **Data** — export/import JSON backup with last backup date tracking
+  5. **About** — app name, version, description
+- **TabNav updates**: Added Settings tab with gear SVG icon, removed inline theme toggle button
+- **Dashboard cleanup**: Removed notification bell, notification panel, profile selector, and data export/import — dashboard now focuses on quick actions and daily stats
+- **NotificationSettings**: Made `onClose` prop optional for flexible usage in both Settings page and other contexts
+
 ## Future Ideas
-- ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
-- ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
-- ~~Milestone notifications/reminders~~ (done 2026-05-15)
-- ~~Multiple data profiles~~ (done 2026-05-16)
+|- ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
+|- ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
+|- ~~Milestone notifications/reminders~~ (done 2026-05-15)
+|- ~~Multiple data profiles~~ (done 2026-05-16)
+|- ~~Dashboard Quick Actions~~ (done 2026-05-17)
+|- ~~Settings page with organized preferences~~ (done 2026-05-18)
