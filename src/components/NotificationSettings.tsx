@@ -10,7 +10,7 @@ import { NotificationSettings as NotificationSettingsType } from '@/lib/types';
 export default function NotificationSettings({
   onClose,
 }: {
-  onClose: () => void;
+  onClose?: () => void;
 }) {
   const [settings, setSettings] = useState<NotificationSettingsType>(() =>
     loadNotificationSettings()
@@ -50,12 +50,14 @@ export default function NotificationSettings({
     <div className="bg-card border border-card-border rounded-2xl p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold">Notifications</h2>
-        <button
-          onClick={onClose}
-          className="text-fg-muted hover:text-foreground text-sm transition-colors"
-        >
-          Close
-        </button>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="text-fg-muted hover:text-foreground text-sm transition-colors"
+          >
+            Close
+          </button>
+        )}
       </div>
 
       {/* Permission status */}
