@@ -94,10 +94,24 @@
 - **Dashboard cleanup**: Removed notification bell, notification panel, profile selector, and data export/import — dashboard now focuses on quick actions and daily stats
 - **NotificationSettings**: Made `onClose` prop optional for flexible usage in both Settings page and other contexts
 
+## 2026-05-19
+### Added: Calendar View Page
+- **Calendar page** (`/calendar`): Monthly calendar grid (Sun-Sat) with full month navigation
+- **Habit dots**: Each completed habit on a given day shows as a colored dot using the habit's color
+- **Mood & energy**: Daily log emoji indicators (😞😕😐🙂😄 for mood, 🪫😴😐⚡🔥 for energy) appear on days with logs
+- **Goal indicator**: Small indicator dot for days with goal activity (milestone completions or target dates)
+- **Today highlight**: Current day has a blue ring border; other-month days are dimmed/grayed
+- **Day detail panel**: Click any day to see a side panel with full breakdown — habits with completion toggles, daily log (mood/energy/notes), goals with milestone status, and skill sessions with duration
+- **Month navigation**: Left/right arrows to browse months, "Today" button to jump back
+- **Legend**: Compact legend explaining each indicator type
+- **TabNav update**: Added "Calendar" tab with calendar SVG icon between Daily and Skills
+- Pure CSS/Tailwind, no external dependencies; theme-compatible via CSS variable classes
+
 ## Future Ideas
-|- ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
-|- ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
-|- ~~Milestone notifications/reminders~~ (done 2026-05-15)
-|- ~~Multiple data profiles~~ (done 2026-05-16)
-|- ~~Dashboard Quick Actions~~ (done 2026-05-17)
-|- ~~Settings page with organized preferences~~ (done 2026-05-18)
+- ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
+- ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
+- ~~Milestone notifications/reminders~~ (done 2026-05-15)
+- ~~Multiple data profiles~~ (done 2026-05-16)
+- ~~Dashboard Quick Actions~~ (done 2026-05-17)
+- ~~Settings page with organized preferences~~ (done 2026-05-18)
+- ~~Calendar view page~~ (done 2026-05-19)
