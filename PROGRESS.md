@@ -107,6 +107,15 @@
 - **TabNav update**: Added "Calendar" tab with calendar SVG icon between Daily and Skills
 - Pure CSS/Tailwind, no external dependencies; theme-compatible via CSS variable classes
 
+## 2026-05-20
+### Fixed: ESLint React Hooks Errors
+- **ThemeProvider** (`src/components/ThemeProvider.tsx`): Moved `localStorage.getItem('theme')` into lazy `useState` initializer — removed `setState` from useEffect, now only handles DOM class toggle
+- **NotificationSettings** (`src/components/NotificationSettings.tsx`): Moved `Notification.permission` read into lazy `useState` initializer — removed redundant `useEffect` entirely
+- **Dashboard page** (`src/app/dashboard/page.tsx`): Removed redundant `useEffect` that called `setData(loadData())` — replaced with direct initialization from `loadProfileData`
+- **Settings page** (`src/app/settings/page.tsx`): Moved `localStorage.getItem(LAST_BACKUP_KEY)` into lazy `useState` initializer — removed redundant `useEffect`
+- **Calendar page** (`src/app/calendar/page.tsx`): Wrapped `now` and `todayKey` in `useMemo` to fix React Compiler memoization
+- Result: `npm run lint` — 0 errors, `npm run build` — success
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
