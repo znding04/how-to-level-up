@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import {
   loadData,
   saveData,
@@ -64,16 +64,14 @@ export default function SettingsPage() {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [newProfileName, setNewProfileName] = useState('');
-  const [lastBackup, setLastBackup] = useState<string | null>(null);
+  const [lastBackup, setLastBackup] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(LAST_BACKUP_KEY);
+    }
+    return null;
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
-
-  useEffect(() => {
-    setData(loadData());
-    if (typeof window !== 'undefined') {
-      setLastBackup(localStorage.getItem(LAST_BACKUP_KEY));
-    }
-  }, []);
 
   // Profile management
   function handleSwitchProfile(profileId: string) {

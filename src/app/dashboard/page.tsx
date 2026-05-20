@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { loadData, saveData, loadProfileData, todayString, generateId } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import Link from 'next/link';
@@ -29,14 +29,14 @@ function getWeekDates(): string[] {
 
 export default function DashboardPage() {
   const [data, setData] = useState<AppData>(() => loadData());
-  const [quickMood, setQuickMood] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
-  const [quickEnergy, setQuickEnergy] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
-  const [quickNotes, setQuickNotes] = useState('');
+  const initialLog = (() => {
+    const pd = loadProfileData(data);
+    return pd.dailyLogs.find((l) => l.date === todayString());
+  })();
+  const [quickMood, setQuickMood] = useState<1 | 2 | 3 | 4 | 5 | null>(initialLog?.mood ?? null);
+  const [quickEnergy, setQuickEnergy] = useState<1 | 2 | 3 | 4 | 5 | null>(initialLog?.energy ?? null);
+  const [quickNotes, setQuickNotes] = useState(initialLog?.notes || '');
   const [logSuccess, setLogSuccess] = useState(false);
-
-  useEffect(() => {
-    setData(loadData());
-  }, []);
 
   const today = todayString();
   const profileData = loadProfileData(data);
@@ -87,14 +87,6 @@ export default function DashboardPage() {
   // Daily habits for quick actions
   const dailyHabits = profileData.habits.filter((h) => h.frequency === 'daily');
 
-  // Pre-fill quick check-in form from existing log
-  useEffect(() => {
-    if (todayLog) {
-      setQuickMood(todayLog.mood);
-      setQuickEnergy(todayLog.energy);
-      setQuickNotes(todayLog.notes || '');
-    }
-  }, [todayLog]);
 
   function handleToggleHabit(habitId: string) {
     const updated = { ...data };

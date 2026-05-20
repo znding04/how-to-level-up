@@ -80,8 +80,8 @@ function buildCalendarDays(year: number, month: number, todayKey: string): Calen
 }
 
 export default function CalendarPage() {
-  const now = new Date();
-  const todayKey = formatDateKey(now.getFullYear(), now.getMonth(), now.getDate());
+  const now = useMemo(() => new Date(), []);
+  const todayKey = useMemo(() => formatDateKey(now.getFullYear(), now.getMonth(), now.getDate()), [now]);
 
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());

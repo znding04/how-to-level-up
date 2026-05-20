@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   loadNotificationSettings,
   saveNotificationSettings,
@@ -15,13 +15,12 @@ export default function NotificationSettings({
   const [settings, setSettings] = useState<NotificationSettingsType>(() =>
     loadNotificationSettings()
   );
-  const [permission, setPermission] = useState<NotificationPermission>('default');
-
-  useEffect(() => {
-    if ('Notification' in window) {
-      setPermission(Notification.permission);
+  const [permission, setPermission] = useState<NotificationPermission>(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      return Notification.permission;
     }
-  }, []);
+    return 'default';
+  });
 
   function updateSettings(partial: Partial<NotificationSettingsType>) {
     const updated = { ...settings, ...partial };
