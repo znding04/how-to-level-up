@@ -205,14 +205,28 @@ export default function DashboardPage() {
           <h3 className="text-sm font-medium text-fg-secondary mb-3">Quick Check-in</h3>
           <div className="space-y-3">
             {/* Mood */}
-            <div>
-              <label className="text-xs text-fg-muted block mb-1">Mood</label>
-              <div className="flex gap-2">
+            <div role="group" aria-labelledby="mood-label">
+              <label id="mood-label" className="text-xs text-fg-muted block mb-1">Mood</label>
+              <div className="flex gap-2" role="radiogroup" aria-label="Mood selection">
                 {([1, 2, 3, 4, 5] as const).map((v) => (
                   <button
                     key={v}
                     onClick={() => setQuickMood(v)}
-                    className={`text-2xl p-1 rounded-lg transition-all ${
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        const next = (v < 5 ? v + 1 : 1) as 1 | 2 | 3 | 4 | 5;
+                        setQuickMood(next);
+                      } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        const prev = (v > 1 ? v - 1 : 5) as 1 | 2 | 3 | 4 | 5;
+                        setQuickMood(prev);
+                      }
+                    }}
+                    aria-label={`Mood ${v} of 5 - ${['very sad', 'sad', 'neutral', 'happy', 'very happy'][v - 1]}`}
+                    aria-checked={quickMood === v}
+                    role="radio"
+                    className={`text-2xl p-1 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
                       quickMood === v
                         ? 'bg-blue-500/20 scale-110 ring-2 ring-blue-500/50'
                         : 'hover:bg-surface-hover'
@@ -225,14 +239,28 @@ export default function DashboardPage() {
             </div>
 
             {/* Energy */}
-            <div>
-              <label className="text-xs text-fg-muted block mb-1">Energy</label>
-              <div className="flex gap-2">
+            <div role="group" aria-labelledby="energy-label">
+              <label id="energy-label" className="text-xs text-fg-muted block mb-1">Energy</label>
+              <div className="flex gap-2" role="radiogroup" aria-label="Energy selection">
                 {([1, 2, 3, 4, 5] as const).map((v) => (
                   <button
                     key={v}
                     onClick={() => setQuickEnergy(v)}
-                    className={`text-2xl p-1 rounded-lg transition-all ${
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        const next = (v < 5 ? v + 1 : 1) as 1 | 2 | 3 | 4 | 5;
+                        setQuickEnergy(next);
+                      } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        const prev = (v > 1 ? v - 1 : 5) as 1 | 2 | 3 | 4 | 5;
+                        setQuickEnergy(prev);
+                      }
+                    }}
+                    aria-label={`Energy ${v} of 5 - ${['exhausted', 'tired', 'moderate', 'energized', 'fully charged'][v - 1]}`}
+                    aria-checked={quickEnergy === v}
+                    role="radio"
+                    className={`text-2xl p-1 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50 ${
                       quickEnergy === v
                         ? 'bg-blue-500/20 scale-110 ring-2 ring-blue-500/50'
                         : 'hover:bg-surface-hover'
