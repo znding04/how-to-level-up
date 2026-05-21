@@ -107,11 +107,18 @@
 - **TabNav update**: Added "Calendar" tab with calendar SVG icon between Daily and Skills
 - Pure CSS/Tailwind, no external dependencies; theme-compatible via CSS variable classes
 
+## 2026-05-21
+### Added: Accessibility Improvements to Dashboard Mood/Energy Selectors
+- **Mood selector** (`src/app/dashboard/page.tsx`): Added ARIA labels with descriptive text (e.g., "Mood 3 of 5 - neutral"), `role="radio"` semantics with `aria-checked`, `role="radiogroup"` container with `aria-label`
+- **Energy selector**: Same accessibility treatment as mood — `role="radiogroup"` with "Energy level" label, each button has "Energy N of 5" label with descriptive text
+- **Keyboard navigation**: Arrow Left/Right keys cycle through options, visible `focus:ring-2` indicators for keyboard focus
+- `npm run lint` — 0 errors, `npm run build` — success
+
 ## 2026-05-20
 ### Fixed: ESLint React Hooks Errors
 - **ThemeProvider** (`src/components/ThemeProvider.tsx`): Moved `localStorage.getItem('theme')` into lazy `useState` initializer — removed `setState` from useEffect, now only handles DOM class toggle
 - **NotificationSettings** (`src/components/NotificationSettings.tsx`): Moved `Notification.permission` read into lazy `useState` initializer — removed redundant `useEffect` entirely
-- **Dashboard page** (`src/app/dashboard/page.tsx`): Removed redundant `useEffect` that called `setData(loadData())` — replaced with direct initialization from `loadProfileData`
+- **Dashboard page** (`src/app/dashboard/page.tsx`): Removed redundant `useEffect` that called `setState(loadData())` — replaced with direct initialization from `loadProfileData`
 - **Settings page** (`src/app/settings/page.tsx`): Moved `localStorage.getItem(LAST_BACKUP_KEY)` into lazy `useState` initializer — removed redundant `useEffect`
 - **Calendar page** (`src/app/calendar/page.tsx`): Wrapped `now` and `todayKey` in `useMemo` to fix React Compiler memoization
 - Result: `npm run lint` — 0 errors, `npm run build` — success
