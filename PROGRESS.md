@@ -123,6 +123,14 @@
 - **Calendar page** (`src/app/calendar/page.tsx`): Wrapped `now` and `todayKey` in `useMemo` to fix React Compiler memoization
 - Result: `npm run lint` — 0 errors, `npm run build` — success
 
+## 2026-05-22
+### Added: Day-of-Week Habit Scheduling
+- **`Habit.scheduledDays`** (`src/lib/types.ts`): New optional `scheduledDays?: number[]` field on the `Habit` interface — array of day indices (0=Sun through 6=Sat). Backward compatible with existing habits (default to all days).
+- **Habits page** (`src/app/habits/page.tsx`): Added frequency selector (Daily/Weekly) and a 7-button day-of-week picker (S M T W T F S) to both the create and edit forms. Daily habit defaults to all 7 days selected; Weekly defaults to a single day. Habit list now displays scheduled day abbreviations (e.g., "M/W/F") instead of just "weekly".
+- **Dashboard** (`src/app/dashboard/page.tsx`): "Today's Daily Habits" checklist and Habits Summary card now filter to only habits whose `scheditedDays` includes today's day-of-week. Existing habits without `scheduledDays` default to all days (fully backward compatible).
+- **Habit Trends** (`src/app/habits/trends/page.tsx`): Heatmap, weekly bar chart, and 30-day breakdown all respect `scheduledDays` — only count completions against scheduled days, giving accurate completion rates for part-week habits.
+- `npm run build` and `npm run lint` both pass.
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
@@ -131,3 +139,4 @@
 - ~~Dashboard Quick Actions~~ (done 2026-05-17)
 - ~~Settings page with organized preferences~~ (done 2026-05-18)
 - ~~Calendar view page~~ (done 2026-05-19)
+- ~~Day-of-week habit scheduling~~ (done 2026-05-22)
