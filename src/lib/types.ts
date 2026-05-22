@@ -9,6 +9,7 @@ export interface Habit {
   profileId: string;
   name: string;
   frequency: 'daily' | 'weekly';
+  scheduledDays?: number[]; // 0=Sun, 1=Mon, ..., 6=Sat
   color: string;
   createdAt: string;
   completions: Record<string, boolean>;

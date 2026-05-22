@@ -14,11 +14,15 @@ export default function HabitsPage() {
     return loadProfileData(data).habits;
   });
   const [newName, setNewName] = useState('');
+  const [newFrequency, setNewFrequency] = useState<'daily' | 'weekly'>('daily');
+  const [newScheduledDays, setNewScheduledDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editFrequency, setEditFrequency] = useState<'daily' | 'weekly'>('daily');
   const [editColor, setEditColor] = useState('#3b82f6');
+  const [editScheduledDays, setEditScheduledDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const today = todayString();
+  const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   function persist(updated: Habit[]) {
     setHabits(updated);
@@ -29,19 +33,44 @@ export default function HabitsPage() {
   }
 
   function addHabit() {
-    if (!newName.trim()) return;
+    if (!newName.trim() || newScheduledDays.length === 0) return;
     const data = loadData();
     const habit: Habit = {
       id: generateId(),
       profileId: data.activeProfileId,
       name: newName.trim(),
-      frequency: 'daily',
+      frequency: newFrequency,
+      scheduledDays: newScheduledDays,
       color: PRESET_COLORS[Math.floor(Math.random() * 5)],
       createdAt: today,
       completions: {},
     };
     persist([...habits, habit]);
     setNewName('');
+    setNewFrequency('daily');
+    setNewScheduledDays([0, 1, 2, 3, 4, 5, 6]);
+  }
+
+  function toggleNewDay(day: number) {
+    if (newFrequency === 'weekly') {
+      setNewScheduledDays([day]);
+    } else {
+      const next = newScheduledDays.includes(day)
+        ? newScheduledDays.filter((d) => d !== day)
+        : [...newScheduledDays, day];
+      if (next.length > 0) setNewScheduledDays(next);
+    }
+  }
+
+  function toggleEditDay(day: number) {
+    if (editFrequency === 'weekly') {
+      setEditScheduledDays([day]);
+    } else {
+      const next = editScheduledDays.includes(day)
+        ? editScheduledDays.filter((d) => d !== day)
+        : [...editScheduledDays, day];
+      if (next.length > 0) setEditScheduledDays(next);
+    }
   }
 
   function toggleCompletion(id: string) {
@@ -59,13 +88,14 @@ export default function HabitsPage() {
     setEditName(habit.name);
     setEditFrequency(habit.frequency);
     setEditColor(habit.color);
+    setEditScheduledDays(habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6]);
   }
 
   function saveEdit(id: string) {
-    if (!editName.trim()) return;
+    if (!editName.trim() || editScheduledDays.length === 0) return;
     const updated = habits.map((h) => {
       if (h.id !== id) return h;
-      return { ...h, name: editName.trim(), frequency: editFrequency, color: editColor };
+      return { ...h, name: editName.trim(), frequency: editFrequency, color: editColor, scheduledDays: editScheduledDays };
     });
     persist(updated);
     setEditingId(null);
@@ -191,21 +221,68 @@ export default function HabitsPage() {
         </Link>
       </div>
 
-      <div className="flex gap-2 mb-6">
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addHabit()}
-          placeholder="New habit..."
-          className="flex-1 bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={addHabit}
-          className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          Add
-        </button>
+      <div className="space-y-3 mb-6">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addHabit()}
+            placeholder="New habit..."
+            className="flex-1 bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={addHabit}
+            className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            Add
+          </button>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-fg-secondary">Frequency:</span>
+          <button
+            onClick={() => {
+              setNewFrequency('daily');
+              setNewScheduledDays([0, 1, 2, 3, 4, 5, 6]);
+            }}
+            className={`text-xs px-2 py-1 rounded ${
+              newFrequency === 'daily'
+                ? 'bg-blue-600 text-white'
+                : 'bg-surface text-fg-secondary'
+            }`}
+          >
+            Daily
+          </button>
+          <button
+            onClick={() => {
+              setNewFrequency('weekly');
+              setNewScheduledDays([new Date().getDay()]);
+            }}
+            className={`text-xs px-2 py-1 rounded ${
+              newFrequency === 'weekly'
+                ? 'bg-blue-600 text-white'
+                : 'bg-surface text-fg-secondary'
+            }`}
+          >
+            Weekly
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-fg-secondary">Days:</span>
+          {DAY_LABELS.map((label, i) => (
+            <button
+              key={i}
+              onClick={() => toggleNewDay(i)}
+              className={`w-7 h-7 rounded-full text-xs font-medium transition-colors ${
+                newScheduledDays.includes(i)
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-surface text-fg-secondary hover:bg-surface-hover'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {habits.length === 0 ? (
@@ -230,7 +307,10 @@ export default function HabitsPage() {
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-fg-secondary">Frequency:</span>
                     <button
-                      onClick={() => setEditFrequency('daily')}
+                      onClick={() => {
+                        setEditFrequency('daily');
+                        setEditScheduledDays([0, 1, 2, 3, 4, 5, 6]);
+                      }}
                       className={`text-xs px-2 py-1 rounded ${
                         editFrequency === 'daily'
                           ? 'bg-blue-600 text-white'
@@ -240,7 +320,10 @@ export default function HabitsPage() {
                       Daily
                     </button>
                     <button
-                      onClick={() => setEditFrequency('weekly')}
+                      onClick={() => {
+                        setEditFrequency('weekly');
+                        setEditScheduledDays([new Date().getDay()]);
+                      }}
                       className={`text-xs px-2 py-1 rounded ${
                         editFrequency === 'weekly'
                           ? 'bg-blue-600 text-white'
@@ -249,6 +332,22 @@ export default function HabitsPage() {
                     >
                       Weekly
                     </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-fg-secondary">Days:</span>
+                    {DAY_LABELS.map((label, i) => (
+                      <button
+                        key={i}
+                        onClick={() => toggleEditDay(i)}
+                        className={`w-7 h-7 rounded-full text-xs font-medium transition-colors ${
+                          editScheduledDays.includes(i)
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-surface text-fg-secondary hover:bg-surface-hover'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-fg-secondary">Color:</span>
@@ -299,7 +398,9 @@ export default function HabitsPage() {
                       {habit.name}
                     </span>
                     <span className="text-xs text-fg-muted ml-2">
-                      {habit.frequency === 'weekly' ? 'weekly' : ''}
+                      {habit.scheduledDays && habit.scheduledDays.length < 7
+                        ? habit.scheduledDays.sort((a, b) => a - b).map((d) => DAY_LABELS[d]).join('/')
+                        : ''}
                     </span>
                   </div>
                   <div className="text-xs text-fg-secondary text-right space-y-0.5">

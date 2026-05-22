@@ -54,8 +54,11 @@ export default function HabitTrendsPage() {
         let total = 0;
 
         if (!isFuture) {
+          const cellDow = cellDate.getDay();
           for (const habit of filteredHabits) {
             if (habit.frequency === 'weekly') continue; // skip weekly habits in daily grid
+            const scheduledDays = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
+            if (!scheduledDays.includes(cellDow)) continue;
             if (key >= habit.createdAt) {
               total++;
               if (habit.completions[key]) count++;
@@ -88,8 +91,11 @@ export default function HabitTrendsPage() {
         if (cellDate > today) break;
         const key = getDateKey(cellDate);
 
+        const cellDow = cellDate.getDay();
         for (const habit of filteredHabits) {
           if (habit.frequency === 'weekly') continue;
+          const scheduledDays = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
+          if (!scheduledDays.includes(cellDow)) continue;
           if (key >= habit.createdAt) {
             possible++;
             if (habit.completions[key]) completed++;
@@ -114,12 +120,14 @@ export default function HabitTrendsPage() {
     return habits.map((habit) => {
       let completedLast30 = 0;
       let possibleLast30 = 0;
+      const scheduledDays = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
       for (let i = 0; i < 30; i++) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
         const key = getDateKey(d);
         if (key >= habit.createdAt) {
           if (habit.frequency === 'daily') {
+            if (!scheduledDays.includes(d.getDay())) continue;
             possibleLast30++;
             if (habit.completions[key]) completedLast30++;
           }

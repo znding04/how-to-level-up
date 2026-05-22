@@ -42,10 +42,15 @@ export default function DashboardPage() {
   const profileData = loadProfileData(data);
   const activeProfile = data.profiles.find((p) => p.id === data.activeProfileId);
 
-  // Habits summary
-  const totalHabits = profileData.habits.length;
-  const completedToday = profileData.habits.filter((h) => h.completions[today]).length;
-  const uncheckedHabits = profileData.habits.filter((h) => !h.completions[today]);
+  // Habits summary — only habits scheduled for today
+  const todayDow = new Date().getDay();
+  const todaysHabits = profileData.habits.filter((h) => {
+    const days = h.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
+    return days.includes(todayDow);
+  });
+  const totalHabits = todaysHabits.length;
+  const completedToday = todaysHabits.filter((h) => h.completions[today]).length;
+  const uncheckedHabits = todaysHabits.filter((h) => !h.completions[today]);
 
   // Daily check-in
   const todayLog = profileData.dailyLogs.find((l) => l.date === today);
@@ -84,8 +89,8 @@ export default function DashboardPage() {
     }
   }
 
-  // Daily habits for quick actions
-  const dailyHabits = profileData.habits.filter((h) => h.frequency === 'daily');
+  // Daily habits for quick actions — only habits scheduled for today
+  const dailyHabits = todaysHabits;
 
 
   function handleToggleHabit(habitId: string) {
