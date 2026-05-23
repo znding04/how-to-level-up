@@ -131,6 +131,23 @@
 - **Habit Trends** (`src/app/habits/trends/page.tsx`): Heatmap, weekly bar chart, and 30-day breakdown all respect `scheduledDays` — only count completions against scheduled days, giving accurate completion rates for part-week habits.
 - `npm run build` and `npm run lint` both pass.
 
+## 2026-05-23
+### Added: Floating Quick-Add Button + Habit Streaks Page
+- **QuickAddFAB** (`src/components/QuickAddFAB.tsx`): Floating action button (bottom-right, above tab nav) with '+' icon that transforms to '×' when open. Opens a quick-add menu with three options:
+  - **Log Habit**: Compact habit selector with checkboxes for today's scheduled habits, toggles completions in localStorage immediately
+  - **Quick Daily Check-in**: Inline mood (😞😕😐🙂😄) and energy (🪫😴😐⚡🔥) pickers, saves/updates daily log with green "✓ Saved!" feedback
+  - **Add Skill Session**: Skill dropdown + minutes input, saves session to selected skill with success feedback
+- FAB hidden on `/settings` page; backdrop click dismisses all panels
+- **Layout integration** (`src/app/layout.tsx`): QuickAddFAB added to root layout inside ThemeProvider
+- **Habit Streaks page** (`/habits/streaks`): New route showing streak analytics for all habits:
+  - Current streak (consecutive days/weeks completed) and longest streak per habit
+  - 30-day mini sparkline bar chart (pure CSS, no libraries) showing daily completion history
+  - Color-coded streak status: green for active, orange for at-risk (1 day missed), gray for broken
+  - Streak milestone badges: 🔥 at 7 days, 🔥🔥 at 14, 💪 at 30, ⭐ at 60, 👑 at 90
+  - Milestone legend card at bottom
+- **Habits page** (`src/app/habits/page.tsx`): Added "Streaks" link in header alongside existing "Trends" link
+- `npm run lint` — 0 errors, `npm run build` — success (14 static pages including `/habits/streaks`)
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)

@@ -213,12 +213,20 @@ export default function HabitsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Habits</h1>
-        <Link
-          href="/habits/trends"
-          className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-        >
-          Trends &rarr;
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/habits/streaks"
+            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            Streaks
+          </Link>
+          <Link
+            href="/habits/trends"
+            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            Trends &rarr;
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-3 mb-6">
