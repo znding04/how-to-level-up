@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
 import { Goal } from '@/lib/types';
+import { runAchievementCheck } from '@/lib/useAchievementCheck';
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(() => {
@@ -20,7 +21,9 @@ export default function GoalsPage() {
     setGoals(updated);
     const data = loadData();
     const otherGoals = data.goals.filter((g) => g.profileId !== data.activeProfileId);
-    saveData({ ...data, goals: [...otherGoals, ...updated] });
+    const merged = { ...data, goals: [...otherGoals, ...updated] };
+    saveData(merged);
+    runAchievementCheck(merged);
   }
 
   function addGoal() {

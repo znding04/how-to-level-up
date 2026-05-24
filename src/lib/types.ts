@@ -57,6 +57,15 @@ export interface SkillSession {
   notes: string;
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlockedAt?: string;
+  category: 'habits' | 'goals' | 'daily' | 'skills' | 'streaks' | 'milestones';
+}
+
 export interface NotificationSettings {
   dailyReminder: boolean;
   dailyReminderTime: string; // HH:MM
@@ -71,4 +80,5 @@ export interface AppData {
   goals: Goal[];
   dailyLogs: DailyLog[];
   skills: Skill[];
+  achievements?: Record<string, Achievement[]>; // profileId -> unlocked achievements
 }

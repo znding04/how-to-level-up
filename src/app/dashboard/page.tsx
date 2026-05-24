@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { loadData, saveData, loadProfileData, todayString, generateId } from '@/lib/storage';
 import { AppData } from '@/lib/types';
+import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import Link from 'next/link';
 
 function getGreeting(): string {
@@ -28,7 +29,10 @@ function getWeekDates(): string[] {
 }
 
 export default function DashboardPage() {
-  const [data, setData] = useState<AppData>(() => loadData());
+  const [data, setData] = useState<AppData>(() => {
+    const d = loadData();
+    return runAchievementCheck(d);
+  });
   const initialLog = (() => {
     const pd = loadProfileData(data);
     return pd.dailyLogs.find((l) => l.date === todayString());
@@ -103,7 +107,7 @@ export default function DashboardPage() {
       habit.completions[today] = true;
     }
     saveData(updated);
-    setData({ ...updated });
+    setData(runAchievementCheck({ ...updated }));
   }
 
   function handleQuickLog() {
@@ -126,7 +130,7 @@ export default function DashboardPage() {
       updated.dailyLogs.push(log);
     }
     saveData(updated);
-    setData({ ...updated });
+    setData(runAchievementCheck({ ...updated }));
     setLogSuccess(true);
     setTimeout(() => setLogSuccess(false), 2000);
   }

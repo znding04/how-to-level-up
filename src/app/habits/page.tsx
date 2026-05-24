@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
 import { Habit } from '@/lib/types';
+import { runAchievementCheck } from '@/lib/useAchievementCheck';
 
 const PRESET_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -29,7 +30,9 @@ export default function HabitsPage() {
     const data = loadData();
     // Replace only habits for the active profile, keep other profiles' habits
     const otherHabits = data.habits.filter((h) => h.profileId !== data.activeProfileId);
-    saveData({ ...data, habits: [...otherHabits, ...updated] });
+    const merged = { ...data, habits: [...otherHabits, ...updated] };
+    saveData(merged);
+    runAchievementCheck(merged);
   }
 
   function addHabit() {
