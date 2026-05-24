@@ -148,6 +148,24 @@
 - **Habits page** (`src/app/habits/page.tsx`): Added "Streaks" link in header alongside existing "Trends" link
 - `npm run lint` — 0 errors, `npm run build` — success (14 static pages including `/habits/streaks`)
 
+## 2026-05-24
+### Added: Achievements System
+- **Achievement type** (`src/lib/types.ts`): `Achievement { id, title, description, icon, unlockedAt, category }` interface
+- **Achievement definitions** (`src/lib/achievements.ts`): 19 achievement definitions across 6 categories:
+  - Habits: `first_habit`, `all_daily_habits`, `perfect_week`
+  - Goals: `first_goal`, `goal_complete`
+  - Daily: `daily_checkin_3`, `daily_checkin_7`, `early_bird`, `night_owl`
+  - Skills: `first_skill`, `skill_hour`, `skill_day`
+  - Streaks: `week_streak`, `month_streak`, `streak_60`, `streak_90`
+  - Milestones: `first_milestone`, `profile_switcher`, `data_backup`
+- **Achievement service** (`src/lib/achievements.ts`): `checkAchievements()` compares profile data against all conditions; `persistAchievements()` saves newly unlocked ones; `getAllAchievementsWithStatus()` returns full list with unlock status
+- **useAchievementCheck hook** (`src/lib/useAchievementCheck.ts`): Trigger achievement checks after habit toggles, form submissions, and daily log saves
+- **Achievements page** (`/achievements`): Grid layout with locked (grayscale + 🔒) and unlocked cards, category filter tabs, progress bar, and new-unlock banner animation
+- **TabNav update**: Added "Achievements" tab with trophy SVG icon (between Goals and Daily)
+- **Integration points**: Dashboard, habits page, goals page, daily page, and skills page all call achievement checks after mutations
+- **ESLint fix**: Fixed `setState-in-effect` error by using lazy `useState` initializer and `setTimeout` for deferred state updates in the achievements page
+- `npm run lint` — 0 errors, `npm run build` — 15 static pages including `/achievements`
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
