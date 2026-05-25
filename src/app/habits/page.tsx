@@ -8,6 +8,87 @@ import { runAchievementCheck } from '@/lib/useAchievementCheck';
 
 const PRESET_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+interface HabitTemplate {
+  name: string;
+  frequency: 'daily' | 'weekly';
+  scheduledDays: number[];
+}
+
+interface TemplateGroup {
+  label: string;
+  icon: string;
+  templates: HabitTemplate[];
+}
+
+const TEMPLATE_GROUPS: TemplateGroup[] = [
+  {
+    label: 'Morning Routine',
+    icon: '🌅',
+    templates: [
+      { name: 'Wake up early', frequency: 'daily', scheduledDays: [1, 2, 3, 4, 5] },
+      { name: 'Drink water', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Meditate', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Stretch / Yoga', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Journal', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+    ],
+  },
+  {
+    label: 'Fitness',
+    icon: '💪',
+    templates: [
+      { name: 'Workout', frequency: 'daily', scheduledDays: [1, 3, 5] },
+      { name: 'Run / Cardio', frequency: 'daily', scheduledDays: [2, 4, 6] },
+      { name: '10,000 steps', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Push-ups', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Go to gym', frequency: 'daily', scheduledDays: [1, 3, 5] },
+    ],
+  },
+  {
+    label: 'Learning',
+    icon: '📚',
+    templates: [
+      { name: 'Read 30 min', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Practice coding', frequency: 'daily', scheduledDays: [1, 2, 3, 4, 5] },
+      { name: 'Study language', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Watch educational content', frequency: 'daily', scheduledDays: [0, 6] },
+      { name: 'Review flashcards', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+    ],
+  },
+  {
+    label: 'Health',
+    icon: '🍎',
+    templates: [
+      { name: 'Eat healthy', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'No sugar', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Sleep 8 hours', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Take vitamins', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'No screens before bed', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+    ],
+  },
+  {
+    label: 'Productivity',
+    icon: '🎯',
+    templates: [
+      { name: 'Plan tomorrow', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Deep work session', frequency: 'daily', scheduledDays: [1, 2, 3, 4, 5] },
+      { name: 'Inbox zero', frequency: 'daily', scheduledDays: [1, 2, 3, 4, 5] },
+      { name: 'Weekly review', frequency: 'weekly', scheduledDays: [0] },
+      { name: 'Clean workspace', frequency: 'daily', scheduledDays: [1, 5] },
+    ],
+  },
+  {
+    label: 'Mindfulness',
+    icon: '🧘',
+    templates: [
+      { name: 'Gratitude practice', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Digital detox hour', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'Nature walk', frequency: 'daily', scheduledDays: [0, 6] },
+      { name: 'Breathing exercises', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+      { name: 'No social media', frequency: 'daily', scheduledDays: [0, 1, 2, 3, 4, 5, 6] },
+    ],
+  },
+];
+
 export default function HabitsPage() {
   const [habits, setHabits] = useState<Habit[]>(() => {
     if (typeof window === 'undefined') return [];
@@ -22,17 +103,22 @@ export default function HabitsPage() {
   const [editFrequency, setEditFrequency] = useState<'daily' | 'weekly'>('daily');
   const [editColor, setEditColor] = useState('#3b82f6');
   const [editScheduledDays, setEditScheduledDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [templateAdded, setTemplateAdded] = useState<string | null>(null);
   const today = todayString();
   const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   function persist(updated: Habit[]) {
     setHabits(updated);
     const data = loadData();
-    // Replace only habits for the active profile, keep other profiles' habits
     const otherHabits = data.habits.filter((h) => h.profileId !== data.activeProfileId);
     const merged = { ...data, habits: [...otherHabits, ...updated] };
     saveData(merged);
     runAchievementCheck(merged);
+  }
+
+  function pickColor(): string {
+    return PRESET_COLORS[habits.length % PRESET_COLORS.length];
   }
 
   function addHabit() {
@@ -44,7 +130,7 @@ export default function HabitsPage() {
       name: newName.trim(),
       frequency: newFrequency,
       scheduledDays: newScheduledDays,
-      color: PRESET_COLORS[Math.floor(Math.random() * 5)],
+      color: pickColor(),
       createdAt: today,
       completions: {},
     };
@@ -52,6 +138,24 @@ export default function HabitsPage() {
     setNewName('');
     setNewFrequency('daily');
     setNewScheduledDays([0, 1, 2, 3, 4, 5, 6]);
+  }
+
+  function addFromTemplate(template: HabitTemplate) {
+    const data = loadData();
+    const habit: Habit = {
+      id: generateId(),
+      profileId: data.activeProfileId,
+      name: template.name,
+      frequency: template.frequency,
+      scheduledDays: template.scheduledDays,
+      color: pickColor(),
+      createdAt: today,
+      completions: {},
+    };
+    const updated = [...habits, habit];
+    persist(updated);
+    setTemplateAdded(template.name);
+    setTimeout(() => setTemplateAdded(null), 1500);
   }
 
   function toggleNewDay(day: number) {
@@ -294,7 +398,52 @@ export default function HabitsPage() {
             </button>
           ))}
         </div>
+        <button
+          onClick={() => setShowTemplates(!showTemplates)}
+          className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+        >
+          {showTemplates ? 'Hide templates' : 'Browse templates...'}
+        </button>
       </div>
+
+      {showTemplates && (
+        <div className="mb-6 space-y-3">
+          {templateAdded && (
+            <div className="bg-green-500/20 text-green-400 text-sm px-3 py-2 rounded-lg text-center">
+              Added &quot;{templateAdded}&quot;!
+            </div>
+          )}
+          {TEMPLATE_GROUPS.map((group) => (
+            <div key={group.label} className="bg-card border border-card-border rounded-xl p-3">
+              <h3 className="text-sm font-medium mb-2">{group.icon} {group.label}</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {group.templates.map((template) => {
+                  const alreadyAdded = habits.some((h) => h.name === template.name);
+                  return (
+                    <button
+                      key={template.name}
+                      onClick={() => !alreadyAdded && addFromTemplate(template)}
+                      disabled={alreadyAdded}
+                      className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
+                        alreadyAdded
+                          ? 'bg-surface text-fg-muted border-card-border cursor-not-allowed'
+                          : 'bg-surface text-fg-secondary border-card-border hover:border-blue-500 hover:text-blue-400'
+                      }`}
+                    >
+                      {alreadyAdded ? '✓ ' : '+ '}{template.name}
+                      {template.scheduledDays.length < 7 && (
+                        <span className="text-fg-muted ml-1">
+                          ({template.scheduledDays.sort((a, b) => a - b).map((d) => DAY_LABELS[d]).join('')})
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {habits.length === 0 ? (
         <p className="text-fg-muted text-center mt-12">

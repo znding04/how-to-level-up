@@ -166,6 +166,12 @@
 - **ESLint fix**: Fixed `setState-in-effect` error by using lazy `useState` initializer and `setTimeout` for deferred state updates in the achievements page
 - `npm run lint` — 0 errors, `npm run build` — 15 static pages including `/achievements`
 
+## 2026-05-25
+### Added: Habit Templates + Goal Categories
+- **Habit Templates** (`src/app/habits/page.tsx`): "Browse templates..." toggle reveals 6 template groups (Morning Routine, Fitness, Learning, Health, Productivity, Mindfulness) with 5 pre-built habits each. One-click add with success feedback; already-added habits shown as disabled with checkmark. Templates include sensible day-of-week scheduling (e.g., workouts on MWF, weekly review on Sunday).
+- **Goal Categories** (`src/app/goals/page.tsx`, `src/lib/types.ts`): New optional `category` field on `Goal` type with 6 categories: Career, Health, Learning, Personal, Financial, Creative. Color-coded category badges on goal cards. Category selector in both create form and expanded edit view. Category filter bar to show goals by category. Fully backward compatible — existing goals without a category display normally.
+- `npm run lint` — 0 errors, `npm run build` — success (15 static pages)
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)

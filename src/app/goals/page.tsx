@@ -2,8 +2,27 @@
 
 import { useState } from 'react';
 import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
-import { Goal } from '@/lib/types';
+import { Goal, GoalCategory } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
+
+const CATEGORIES: { value: GoalCategory; label: string; color: string }[] = [
+  { value: 'career', label: 'Career', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  { value: 'health', label: 'Health', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  { value: 'learning', label: 'Learning', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  { value: 'personal', label: 'Personal', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+  { value: 'financial', label: 'Financial', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  { value: 'creative', label: 'Creative', color: 'bg-pink-500/20 text-pink-400 border-pink-500/30' },
+];
+
+function getCategoryStyle(cat?: GoalCategory): string {
+  const found = CATEGORIES.find((c) => c.value === cat);
+  return found ? found.color : 'bg-surface text-fg-muted border-card-border';
+}
+
+function getCategoryLabel(cat?: GoalCategory): string {
+  const found = CATEGORIES.find((c) => c.value === cat);
+  return found ? found.label : 'Uncategorized';
+}
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(() => {
@@ -12,10 +31,12 @@ export default function GoalsPage() {
     return loadProfileData(data).goals;
   });
   const [newTitle, setNewTitle] = useState('');
+  const [newCategory, setNewCategory] = useState<GoalCategory | ''>('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
   const [addingMilestoneFor, setAddingMilestoneFor] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [filterCategory, setFilterCategory] = useState<GoalCategory | 'all'>('all');
 
   function persist(updated: Goal[]) {
     setGoals(updated);
@@ -35,12 +56,14 @@ export default function GoalsPage() {
       title: newTitle.trim(),
       description: '',
       targetDate: '',
+      category: newCategory || undefined,
       milestones: [],
       status: 'active',
       createdAt: todayString(),
     };
     persist([...goals, goal]);
     setNewTitle('');
+    setNewCategory('');
   }
 
   function toggleGoalStatus(id: string) {
@@ -65,9 +88,12 @@ export default function GoalsPage() {
     if (expandedId === id) setExpandedId(null);
   }
 
-  function updateGoalField(id: string, field: 'description' | 'targetDate', value: string) {
+  function updateGoalField(id: string, field: 'description' | 'targetDate' | 'category', value: string) {
     const updated = goals.map((g) => {
       if (g.id !== id) return g;
+      if (field === 'category') {
+        return { ...g, category: (value || undefined) as GoalCategory | undefined };
+      }
       return { ...g, [field]: value };
     });
     persist(updated);
@@ -109,25 +135,78 @@ export default function GoalsPage() {
     persist(updated);
   }
 
+  const filteredGoals = goals.filter((g) => {
+    if (!showArchived && g.status === 'archived') return false;
+    if (filterCategory === 'all') return true;
+    return g.category === filterCategory;
+  });
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Goals</h1>
 
-      <div className="flex gap-2 mb-6">
-        <input
-          type="text"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addGoal()}
-          placeholder="New goal..."
-          className="flex-1 bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      <div className="space-y-3 mb-6">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && addGoal()}
+            placeholder="New goal..."
+            className="flex-1 bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={addGoal}
+            className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            Add
+          </button>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-fg-secondary">Category:</span>
+          <button
+            onClick={() => setNewCategory('')}
+            className={`text-xs px-2 py-1 rounded border transition-colors ${
+              newCategory === '' ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface text-fg-secondary border-card-border'
+            }`}
+          >
+            None
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.value}
+              onClick={() => setNewCategory(cat.value)}
+              className={`text-xs px-2 py-1 rounded border transition-colors ${
+                newCategory === cat.value ? 'bg-blue-600 text-white border-blue-600' : `${cat.color} border`
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
+        <span className="text-xs text-fg-secondary">Filter:</span>
         <button
-          onClick={addGoal}
-          className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          onClick={() => setFilterCategory('all')}
+          className={`text-xs px-2 py-1 rounded transition-colors ${
+            filterCategory === 'all' ? 'bg-blue-600 text-white' : 'bg-surface text-fg-secondary'
+          }`}
         >
-          Add
+          All
         </button>
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.value}
+            onClick={() => setFilterCategory(cat.value)}
+            className={`text-xs px-2 py-1 rounded border transition-colors ${
+              filterCategory === cat.value ? 'bg-blue-600 text-white border-blue-600' : `${cat.color} border`
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
       </div>
 
       <div className="flex items-center gap-2 mb-4">
@@ -146,9 +225,13 @@ export default function GoalsPage() {
         <p className="text-fg-muted text-center mt-12">
           No goals yet. Set one to start leveling up!
         </p>
+      ) : filteredGoals.length === 0 ? (
+        <p className="text-fg-muted text-center mt-12">
+          No goals match this filter.
+        </p>
       ) : (
         <div className="space-y-3">
-          {goals.filter((g) => showArchived || g.status !== 'archived').map((goal) => (
+          {filteredGoals.map((goal) => (
             <div
               key={goal.id}
               className="bg-card border border-card-border rounded-xl p-4"
@@ -158,19 +241,26 @@ export default function GoalsPage() {
                 onClick={() => setExpandedId(expandedId === goal.id ? null : goal.id)}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h3
-                    className={`font-medium ${
-                      goal.status === 'completed' ? 'line-through text-fg-muted' : ''
-                    }`}
-                  >
-                    {goal.title}
-                  </h3>
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <h3
+                      className={`font-medium truncate ${
+                        goal.status === 'completed' ? 'line-through text-fg-muted' : ''
+                      }`}
+                    >
+                      {goal.title}
+                    </h3>
+                    {goal.category && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded border shrink-0 ${getCategoryStyle(goal.category)}`}>
+                        {getCategoryLabel(goal.category)}
+                      </span>
+                    )}
+                  </div>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleGoalStatus(goal.id);
                     }}
-                    className={`text-xs px-2 py-1 rounded ${
+                    className={`text-xs px-2 py-1 rounded shrink-0 ml-2 ${
                       goal.status === 'completed'
                         ? 'bg-green-500/20 text-green-400'
                         : 'bg-surface text-fg-secondary hover:bg-surface-hover'
@@ -196,6 +286,30 @@ export default function GoalsPage() {
               {expandedId === goal.id && (
                 <div className="mt-3 pt-3 border-t border-card-border">
                   <div className="space-y-2 mb-3">
+                    <div>
+                      <label className="text-xs text-fg-secondary block mb-1">Category</label>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); updateGoalField(goal.id, 'category', ''); }}
+                          className={`text-xs px-2 py-1 rounded border transition-colors ${
+                            !goal.category ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface text-fg-secondary border-card-border'
+                          }`}
+                        >
+                          None
+                        </button>
+                        {CATEGORIES.map((cat) => (
+                          <button
+                            key={cat.value}
+                            onClick={(e) => { e.stopPropagation(); updateGoalField(goal.id, 'category', cat.value); }}
+                            className={`text-xs px-2 py-1 rounded border transition-colors ${
+                              goal.category === cat.value ? 'bg-blue-600 text-white border-blue-600' : `${cat.color} border`
+                            }`}
+                          >
+                            {cat.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <div>
                       <label className="text-xs text-fg-secondary block mb-1">Description</label>
                       <textarea

@@ -15,12 +15,15 @@ export interface Habit {
   completions: Record<string, boolean>;
 }
 
+export type GoalCategory = 'career' | 'health' | 'learning' | 'personal' | 'financial' | 'creative';
+
 export interface Goal {
   id: string;
   profileId: string;
   title: string;
   description: string;
   targetDate: string;
+  category?: GoalCategory;
   milestones: Milestone[];
   status: 'active' | 'completed' | 'archived';
   createdAt: string;
