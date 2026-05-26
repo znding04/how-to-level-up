@@ -172,6 +172,17 @@
 - **Goal Categories** (`src/app/goals/page.tsx`, `src/lib/types.ts`): New optional `category` field on `Goal` type with 6 categories: Career, Health, Learning, Personal, Financial, Creative. Color-coded category badges on goal cards. Category selector in both create form and expanded edit view. Category filter bar to show goals by category. Fully backward compatible — existing goals without a category display normally.
 - `npm run lint` — 0 errors, `npm run build` — success (15 static pages)
 
+## 2026-05-26
+### Added: Skills Trends Page
+- **Skills Trends page** (`/skills/trends`): New page accessible via "Trends" link in skills page header
+- **12-week heatmap**: GitHub-style contribution grid colored by daily practice minutes (emerald green scale)
+- **Weekly bar chart**: 8-week bar chart showing total practice minutes per week, pure CSS/Tailwind
+- **30-day breakdown**: Per-skill progress bars sorted by most practiced — skill name, color dot, total minutes, and proportional bar
+- **Summary stats**: Total practice hours this week, this month, and average per day
+- **Skill filter**: Dropdown to view trends for all skills or a single skill
+- **Navigation**: "Trends" link in skills page header with chart SVG icon (parallel to habits page pattern)
+- `npm run lint` — 0 errors, `npm run build` — success (16 static pages including `/skills/trends`)
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
