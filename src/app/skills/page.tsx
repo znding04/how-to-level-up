@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
 import { Skill } from '@/lib/types';
 
@@ -111,7 +112,18 @@ export default function SkillsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Skills</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Skills</h1>
+        <Link
+          href="/skills/trends"
+          className="flex items-center gap-1 text-sm text-gray-400 hover:text-white transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          Trends
+        </Link>
+      </div>
 
       <div className="flex gap-2 mb-6">
         <input
