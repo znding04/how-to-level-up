@@ -341,6 +341,9 @@ export default function GoalsPage() {
                         >
                           <button
                             onClick={() => toggleMilestone(goal.id, milestone.id)}
+                            role="checkbox"
+                            aria-checked={milestone.completed}
+                            aria-label={`Toggle ${milestone.title} — ${milestone.completed ? 'completed' : 'not completed'}`}
                             className={`w-5 h-5 rounded border flex items-center justify-center text-xs transition-colors ${
                               milestone.completed
                                 ? 'border-green-500 bg-green-500/20 text-green-400'

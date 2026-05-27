@@ -15,6 +15,7 @@ export default function SkillsPage() {
   const [loggingId, setLoggingId] = useState<string | null>(null);
   const [sessionDuration, setSessionDuration] = useState(30);
   const [sessionNotes, setSessionNotes] = useState('');
+  const [durationError, setDurationError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
 
@@ -69,7 +70,11 @@ export default function SkillsPage() {
   }
 
   function saveSession(skillId: string) {
-    if (sessionDuration <= 0) return;
+    if (sessionDuration <= 0) {
+      setDurationError('Duration must be at least 1 minute');
+      return;
+    }
+    setDurationError('');
     const updated = skills.map((s) => {
       if (s.id !== skillId) return s;
       return {
@@ -237,10 +242,11 @@ export default function SkillsPage() {
                     <input
                       type="number"
                       value={sessionDuration}
-                      onChange={(e) => setSessionDuration(Number(e.target.value))}
+                      onChange={(e) => { setSessionDuration(Number(e.target.value)); setDurationError(''); }}
                       min={1}
                       className="w-20 bg-input border border-input-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    {durationError && <span className="text-xs text-red-400">{durationError}</span>}
                   </div>
                   <div>
                     <input

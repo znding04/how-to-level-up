@@ -141,7 +141,7 @@ export default function CalendarPage() {
   }
 
   const selectedLog = selectedDate ? logsByDate[selectedDate] : null;
-  const selectedHabits = selectedDate ? habits.map((h) => ({ ...h, completed: !!h.completions[selectedDate] })) : [];
+  const selectedHabits = selectedDate ? habits.filter((h) => (h.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6]).includes(new Date(selectedDate).getDay())).map((h) => ({ ...h, completed: !!h.completions[selectedDate] })) : [];
   const selectedSessions = selectedDate ? (sessionsByDate[selectedDate] || []) : [];
   const selectedGoals = selectedDate ? getGoalsWithTargetDate(selectedDate) : [];
 

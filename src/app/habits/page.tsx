@@ -236,15 +236,39 @@ export default function HabitsPage() {
     if (dates.length === 0) return 0;
 
     if (habit.frequency === 'weekly') {
-      const weeks = new Set<string>();
+      const scheduled = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
+      const completionSet = new Set(dates);
+      const weekCompletions = new Map<string, boolean>();
       for (const date of dates) {
         const d = new Date(date + 'T00:00:00');
-        const day = d.getDay();
-        const diffToMonday = day === 0 ? 6 : day - 1;
-        d.setDate(d.getDate() - diffToMonday);
-        weeks.add(d.toISOString().split('T')[0]);
+        const dow = d.getDay();
+        if (!scheduled.includes(dow)) continue;
+        const dayOfWeek = d.getDay();
+        const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        const monday = new Date(d);
+        monday.setDate(monday.getDate() - diffToMonday);
+        const weekKey = monday.toISOString().split('T')[0];
+        if (!weekCompletions.has(weekKey)) {
+          // Check if all scheduled days in this week have completions
+          let allCompleted = true;
+          for (let i = 0; i < 7; i++) {
+            const checkDate = new Date(monday);
+            checkDate.setDate(checkDate.getDate() + i);
+            if (!scheduled.includes(checkDate.getDay())) continue;
+            const checkKey = checkDate.toISOString().split('T')[0];
+            if (!completionSet.has(checkKey)) {
+              allCompleted = false;
+              break;
+            }
+          }
+          weekCompletions.set(weekKey, allCompleted);
+        }
       }
-      const sortedWeeks = [...weeks].sort();
+      const sortedWeeks = [...weekCompletions.entries()]
+        .filter(([, complete]) => complete)
+        .map(([weekKey]) => weekKey)
+        .sort();
+      if (sortedWeeks.length === 0) return 0;
       let best = 1;
       let current = 1;
       for (let i = 1; i < sortedWeeks.length; i++) {
@@ -289,6 +313,7 @@ export default function HabitsPage() {
   }
 
   function getWeeklyStreak(habit: Habit): number {
+    const scheduled = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
     let streak = 0;
     const d = new Date();
     const day = d.getDay();
@@ -296,17 +321,21 @@ export default function HabitsPage() {
     d.setDate(d.getDate() - diffToMonday);
 
     while (true) {
-      let weekCompleted = false;
+      let weekCompleted = true;
+      let hasScheduledDay = false;
       for (let i = 0; i < 7; i++) {
         const check = new Date(d);
         check.setDate(check.getDate() + i);
+        const dow = check.getDay();
+        if (!scheduled.includes(dow)) continue;
+        hasScheduledDay = true;
         const key = check.toISOString().split('T')[0];
-        if (habit.completions[key]) {
-          weekCompleted = true;
+        if (!habit.completions[key]) {
+          weekCompleted = false;
           break;
         }
       }
-      if (weekCompleted) {
+      if (hasScheduledDay && weekCompleted) {
         streak++;
         d.setDate(d.getDate() - 7);
       } else {
