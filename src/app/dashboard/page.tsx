@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { loadData, saveData, loadProfileData, todayString, generateId } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
+import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
 import Link from 'next/link';
 
 function getGreeting(): string {
@@ -12,6 +13,16 @@ function getGreeting(): string {
   if (hour < 12) return 'Good morning ☀️';
   if (hour < 18) return 'Good afternoon 💪';
   return 'Good evening 🌙';
+}
+
+function timeAgo(dateStr: string): string {
+  const now = new Date();
+  const then = new Date(dateStr);
+  const diffMs = now.getTime() - then.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  return `${diffDays} days ago`;
 }
 
 function getWeekDates(): string[] {
@@ -92,6 +103,73 @@ export default function DashboardPage() {
       d.setDate(d.getDate() - 1);
     }
   }
+
+  // Achievements
+  const allAchievements = getAllAchievementsWithStatus(data, data.activeProfileId);
+  const unlockedAchievements = allAchievements.filter((a) => a.unlockedAt);
+  const totalAchievements = ACHIEVEMENT_DEFS.length;
+  const unlockedCount = unlockedAchievements.length;
+
+  // Most recently unlocked achievement
+  const recentUnlock = unlockedAchievements.length > 0
+    ? unlockedAchievements.reduce((latest, a) =>
+        (a.unlockedAt! > (latest.unlockedAt ?? '')) ? a : latest
+      )
+    : null;
+
+  // Near-miss: locked achievements at ≥80% progress
+  const lockedIds = new Set(allAchievements.filter((a) => !a.unlockedAt).map((a) => a.id));
+  const nearMisses: { id: string; title: string; icon: string }[] = [];
+
+  if (lockedIds.size > 0) {
+    const dailyLogStreak = (() => {
+      const dates = new Set(profileData.dailyLogs.map((l) => l.date));
+      let s = 0;
+      const d = new Date();
+      while (dates.has(d.toISOString().split('T')[0])) {
+        s++;
+        d.setDate(d.getDate() - 1);
+      }
+      return s;
+    })();
+
+    const totalSkillMinutes = profileData.skills.reduce(
+      (sum, sk) => sum + sk.sessions.reduce((m, s) => m + s.durationMinutes, 0), 0
+    );
+
+    const nearMissChecks: { id: string; progress: number; threshold: number }[] = [
+      { id: 'first_habit', progress: profileData.habits.length, threshold: 1 },
+      { id: 'first_goal', progress: profileData.goals.length, threshold: 1 },
+      { id: 'first_skill', progress: profileData.skills.length, threshold: 1 },
+      { id: 'daily_checkin_3', progress: dailyLogStreak, threshold: 3 },
+      { id: 'daily_checkin_7', progress: dailyLogStreak, threshold: 7 },
+      { id: 'week_streak', progress: streak, threshold: 7 },
+      { id: 'month_streak', progress: streak, threshold: 30 },
+      { id: 'streak_60', progress: streak, threshold: 60 },
+      { id: 'streak_90', progress: streak, threshold: 90 },
+      { id: 'skill_hour', progress: totalSkillMinutes, threshold: 60 },
+      {
+        id: 'all_daily_habits',
+        progress: totalHabits > 0 ? completedToday : 0,
+        threshold: totalHabits > 0 ? totalHabits : 1,
+      },
+      {
+        id: 'goal_complete',
+        progress: profileData.goals.some((g) => g.milestones.some((m) => m.completed)) ? 1 : 0,
+        threshold: 1,
+      },
+    ];
+
+    for (const check of nearMissChecks) {
+      if (!lockedIds.has(check.id)) continue;
+      if (check.threshold > 0 && check.progress / check.threshold >= 0.8) {
+        const def = ACHIEVEMENT_DEFS.find((d) => d.id === check.id);
+        if (def) nearMisses.push({ id: def.id, title: def.title, icon: def.icon });
+      }
+    }
+  }
+
+  const nearMissHint = nearMisses.length > 0 ? nearMisses[0] : null;
 
   // Daily habits for quick actions — only habits scheduled for today
   const dailyHabits = todaysHabits;
@@ -424,6 +502,45 @@ export default function DashboardPage() {
           )}
         </div>
       </Link>
+
+      {/* Achievements */}
+      <div className="bg-card border border-card-border rounded-2xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold flex items-center gap-2">
+            🏆 Achievements
+          </h2>
+          <Link href="/achievements" className="text-sm text-blue-400 hover:underline">
+            View All
+          </Link>
+        </div>
+
+        {/* Progress bar */}
+        <p className="text-sm text-fg-secondary mb-2">
+          {unlockedCount} / {totalAchievements} unlocked
+        </p>
+        <div className="w-full bg-bar-track rounded-full h-2 mb-3">
+          <div
+            className="bg-blue-500 h-2 rounded-full transition-all"
+            style={{ width: `${totalAchievements > 0 ? (unlockedCount / totalAchievements) * 100 : 0}%` }}
+          />
+        </div>
+
+        {/* Recent unlock */}
+        {recentUnlock && (
+          <div className="flex items-center gap-2 text-sm mb-2">
+            <span className="text-lg">{recentUnlock.icon}</span>
+            <span className="text-foreground font-medium">{recentUnlock.title}</span>
+            <span className="text-fg-muted text-xs">unlocked {timeAgo(recentUnlock.unlockedAt!)}</span>
+          </div>
+        )}
+
+        {/* Near-miss hint */}
+        {nearMissHint && (
+          <p className="text-xs text-fg-muted mt-1">
+            So close: {nearMissHint.icon} {nearMissHint.title}
+          </p>
+        )}
+      </div>
 
     </div>
   );
