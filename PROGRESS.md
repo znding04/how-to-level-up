@@ -172,6 +172,16 @@
 - **Goal Categories** (`src/app/goals/page.tsx`, `src/lib/types.ts`): New optional `category` field on `Goal` type with 6 categories: Career, Health, Learning, Personal, Financial, Creative. Color-coded category badges on goal cards. Category selector in both create form and expanded edit view. Category filter bar to show goals by category. Fully backward compatible — existing goals without a category display normally.
 - `npm run lint` — 0 errors, `npm run build` — success (15 static pages)
 
+## 2026-05-27
+### Added: Achievement Progress Card on Dashboard
+- **Achievement card** (`src/app/dashboard/page.tsx`): New card between Skills Practice and bottom nav showing:
+  - Progress bar: X / 19 unlocked
+  - Recent unlock: icon, title, and "unlocked [time ago]" for most recently earned achievement
+  - Near-miss hint: "So close: [achievement]" shown when any locked achievement is ≥80% toward its condition
+  - "View All" link to `/achievements`
+- Uses same `bg-card border-card-border` styling as other dashboard cards; fully theme-compatible
+- `npm run lint` — 0 errors, `npm run build` — success (16 static pages)
+
 ## 2026-05-26
 ### Added: Skills Trends Page
 - **Skills Trends page** (`/skills/trends`): New page accessible via "Trends" link in skills page header
