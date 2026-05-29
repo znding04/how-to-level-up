@@ -5,6 +5,7 @@ import { loadData, saveData, loadProfileData, todayString, generateId } from '@/
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
+import { recordHabitCompletion } from '@/lib/reminders';
 import Link from 'next/link';
 
 function getGreeting(): string {
@@ -183,6 +184,7 @@ export default function DashboardPage() {
       delete habit.completions[today];
     } else {
       habit.completions[today] = true;
+      recordHabitCompletion(habitId, new Date().getHours());
     }
     saveData(updated);
     setData(runAchievementCheck({ ...updated }));

@@ -4,8 +4,39 @@ import { useState } from 'react';
 import {
   loadNotificationSettings,
   saveNotificationSettings,
+  loadData,
+  loadProfileData,
 } from '@/lib/storage';
 import { NotificationSettings as NotificationSettingsType } from '@/lib/types';
+import { getOptimalReminderTime } from '@/lib/reminders';
+
+function SmartTimesDisplay() {
+  const data = loadData();
+  const profileData = loadProfileData(data);
+  const habits = profileData.habits;
+
+  if (habits.length === 0) {
+    return (
+      <p className="text-xs text-fg-muted">No habits yet</p>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {habits.map((h) => {
+        const optimal = getOptimalReminderTime(h.id);
+        return (
+          <div key={h.id} className="flex items-center justify-between text-xs">
+            <span className="text-fg-secondary truncate mr-2">{h.name}</span>
+            <span className="text-fg-muted flex-shrink-0">
+              {optimal ?? 'Learning...'}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function NotificationSettings({
   onClose,
@@ -175,6 +206,24 @@ export default function NotificationSettings({
           />
         </button>
       </label>
+
+      {/* Smart Reminders */}
+      <div className="border-t border-border pt-4 space-y-3">
+        <div>
+          <p className="text-sm font-medium">Smart Reminders</p>
+          <p className="text-xs text-fg-muted">
+            We learn your best times and notify you then
+          </p>
+        </div>
+
+        {settings.dailyReminder && <SmartTimesDisplay />}
+
+        {!settings.dailyReminder && (
+          <p className="text-xs text-fg-muted">
+            Enable Daily Check-in Reminder above to use smart reminders
+          </p>
+        )}
+      </div>
     </div>
   );
 }

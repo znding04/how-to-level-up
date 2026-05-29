@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
 import { Habit } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
+import { recordHabitCompletion } from '@/lib/reminders';
+import HabitReminders from '@/components/HabitReminders';
 
 const PRESET_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -184,7 +186,11 @@ export default function HabitsPage() {
     const updated = habits.map((h) => {
       if (h.id !== id) return h;
       const completions = { ...h.completions };
-      completions[today] = !completions[today];
+      const wasComplete = !!completions[today];
+      completions[today] = !wasComplete;
+      if (!wasComplete) {
+        recordHabitCompletion(id, new Date().getHours());
+      }
       return { ...h, completions };
     });
     persist(updated);
@@ -603,6 +609,7 @@ export default function HabitsPage() {
                       <div className="text-fg-muted">7d: {getWeeklyCompletionRate(habit)}%</div>
                     )}
                   </div>
+                  <HabitReminders habitId={habit.id} habitName={habit.name} />
                   <button
                     onClick={() => startEdit(habit)}
                     className="text-fg-muted hover:text-fg-secondary transition-colors"

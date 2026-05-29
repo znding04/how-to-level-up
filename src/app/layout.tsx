@@ -6,6 +6,7 @@ import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import ThemeProvider from "@/components/ThemeProvider";
 import InstallPrompt from "@/components/InstallPrompt";
 import NotificationService from "@/components/NotificationService";
+import SmartNotificationService from "@/components/SmartNotificationService";
 import QuickAddFAB from "@/components/QuickAddFAB";
 
 const geistSans = Geist({
@@ -43,6 +44,7 @@ export default function RootLayout({
           <ServiceWorkerRegistrar />
           <InstallPrompt />
           <NotificationService />
+          <SmartNotificationService />
           <main className="flex-1 pb-20 max-w-lg mx-auto w-full px-4 pt-6">
             {children}
           </main>

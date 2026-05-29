@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { loadData, saveData, loadProfileData, todayString, generateId } from '@/lib/storage';
+import { recordHabitCompletion } from '@/lib/reminders';
 
 export default function QuickAddFAB() {
   const pathname = usePathname();
@@ -70,7 +71,11 @@ export default function QuickAddFAB() {
     const data = loadData();
     const habit = data.habits.find((h) => h.id === habitId);
     if (!habit) return;
-    habit.completions[today] = !habit.completions[today];
+    const wasComplete = !!habit.completions[today];
+    habit.completions[today] = !wasComplete;
+    if (!wasComplete) {
+      recordHabitCompletion(habitId, new Date().getHours());
+    }
     saveData(data);
     setHabitData((prev) =>
       prev.map((h) => (h.id === habitId ? { ...h, done: !h.done } : h))
