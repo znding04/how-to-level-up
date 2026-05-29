@@ -193,6 +193,17 @@
 - **Navigation**: "Trends" link in skills page header with chart SVG icon (parallel to habits page pattern)
 - `npm run lint` — 0 errors, `npm run build` — success (16 static pages including `/skills/trends`)
 
+## 2026-05-29
+### Added: Smart Reminder System with Habit Completion Learning
+- **Reminder Learning Engine** (`src/lib/reminders.ts`): Tracks completion timestamps per habit, computes optimal reminder time from 14-day history (requires 5+ completions to have a recommendation), falls back to configured daily reminder time otherwise. `recordHabitCompletion()`, `getOptimalReminderTime()`, `getHabitCompletionPattern()`, `clearPatternData()`.
+- **HabitReminders component** (`src/components/HabitReminders.tsx`): Per-habit bell icon popover with "Use smart time" toggle (default ON), custom time picker (when smart time is OFF), and "Mute reminders" option. Persists settings per habit in localStorage.
+- **SmartNotificationService** (`src/components/SmartNotificationService.tsx`): Silent background component that fires notifications at learned optimal times for today's scheduled habits within a 30-minute window. Respects per-habit mute/custom settings. Added to root layout alongside existing NotificationService.
+- **Habits page**: Bell icon per habit card for reminder settings; records completion hour on habit toggle.
+- **Dashboard quick habits**: Records completion hour on quick habit toggle.
+- **QuickAddFAB**: Records completion hour on habit log in the FAB menu.
+- **NotificationSettings**: Added "Smart Reminders" section showing learned optimal times per habit with explanation.
+- `npm run lint` — 0 errors, `npm run build` — success (16 static pages)
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
@@ -202,3 +213,4 @@
 - ~~Settings page with organized preferences~~ (done 2026-05-18)
 - ~~Calendar view page~~ (done 2026-05-19)
 - ~~Day-of-week habit scheduling~~ (done 2026-05-22)
+- ~~Smart Reminder System~~ (done 2026-05-29)
