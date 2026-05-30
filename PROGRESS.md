@@ -204,6 +204,21 @@
 - **NotificationSettings**: Added "Smart Reminders" section showing learned optimal times per habit with explanation.
 - `npm run lint` — 0 errors, `npm run build` — success (16 static pages)
 
+## 2026-05-30
+### Added: Search & Filter + Insights Dashboard
+- **Habits page** (`src/app/habits/page.tsx`): Debounced search input (150ms) filters habits by name in real-time. Shows "No habits match your search" when nothing matches. All existing functionality preserved.
+- **Goals page** (`src/app/goals/page.tsx`): Debounced search input (150ms) filters goals by title and description. Works alongside existing category/archive filters. Shows "No goals match your search" when nothing matches.
+- **Insights page** (`/insights`): New weekly insights dashboard with card-based layout:
+  - Week-over-week habit completion rate comparison with delta
+  - Habit leaderboard: top 3 daily habits by completion rate with mini progress bars
+  - Most consistent habit: On Fire 🔥 (≥80%), Steady ⚡ (≥60%), Building 🏗️ (<60%)
+  - Skill of the week: most practiced skill with total minutes and color dot
+  - Mood & energy snapshots: average with emoji + numeric display
+  - Achievements unlocked this week with icon and "unlocked X days ago"
+  - Goals milestone progress: goals with milestones completed this week
+- **TabNav**: Added "Insights" tab with lightbulb SVG icon between Skills and Review
+- `npm run lint` — 0 errors, `npm run build` — success (17 static pages including /insights)
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
