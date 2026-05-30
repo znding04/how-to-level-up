@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
 import { Habit } from '@/lib/types';
@@ -107,6 +107,15 @@ export default function HabitsPage() {
   const [editScheduledDays, setEditScheduledDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [showTemplates, setShowTemplates] = useState(false);
   const [templateAdded, setTemplateAdded] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleSearch = useCallback((value: string) => {
+    setSearchInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setSearchQuery(value), 150);
+  }, []);
+  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
   const today = todayString();
   const DAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -480,13 +489,29 @@ export default function HabitsPage() {
         </div>
       )}
 
+      {habits.length > 0 && (
+        <div className="mb-4">
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder="Search habits..."
+            className="w-full border border-border bg-card rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+      )}
+
       {habits.length === 0 ? (
         <p className="text-fg-muted text-center mt-12">
           No habits yet. Add one to get started!
         </p>
+      ) : habits.filter((h) => h.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+        <p className="text-fg-muted text-center mt-12">
+          No habits match your search
+        </p>
       ) : (
         <div className="space-y-3">
-          {habits.map((habit) => (
+          {habits.filter((h) => h.name.toLowerCase().includes(searchQuery.toLowerCase())).map((habit) => (
             <div
               key={habit.id}
               className="bg-card border border-card-border rounded-xl p-4"

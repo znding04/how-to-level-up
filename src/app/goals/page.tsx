@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
 import { Goal, GoalCategory } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
@@ -37,6 +37,15 @@ export default function GoalsPage() {
   const [addingMilestoneFor, setAddingMilestoneFor] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [filterCategory, setFilterCategory] = useState<GoalCategory | 'all'>('all');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleSearch = useCallback((value: string) => {
+    setSearchInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setSearchQuery(value), 150);
+  }, []);
+  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
 
   function persist(updated: Goal[]) {
     setGoals(updated);
@@ -137,8 +146,12 @@ export default function GoalsPage() {
 
   const filteredGoals = goals.filter((g) => {
     if (!showArchived && g.status === 'archived') return false;
-    if (filterCategory === 'all') return true;
-    return g.category === filterCategory;
+    if (filterCategory !== 'all' && g.category !== filterCategory) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      return g.title.toLowerCase().includes(q) || g.description.toLowerCase().includes(q);
+    }
+    return true;
   });
 
   return (
@@ -186,6 +199,16 @@ export default function GoalsPage() {
         </div>
       </div>
 
+      <div className="mb-4">
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => handleSearch(e.target.value)}
+          placeholder="Search goals..."
+          className="w-full border border-border bg-card rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
       <div className="flex items-center gap-2 mb-2 flex-wrap">
         <span className="text-xs text-fg-secondary">Filter:</span>
         <button
@@ -227,7 +250,7 @@ export default function GoalsPage() {
         </p>
       ) : filteredGoals.length === 0 ? (
         <p className="text-fg-muted text-center mt-12">
-          No goals match this filter.
+          {searchQuery ? 'No goals match your search' : 'No goals match this filter.'}
         </p>
       ) : (
         <div className="space-y-3">
