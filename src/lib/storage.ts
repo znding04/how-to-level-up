@@ -157,6 +157,25 @@ export function todayString(): string {
   return new Date().toISOString().split('T')[0];
 }
 
+export function needsOnboarding(appData: AppData, profileId: string): boolean {
+  return !appData.onboardingCompleted?.[profileId];
+}
+
+export function markOnboardingCompleted(profileId: string): void {
+  const data = loadData();
+  if (!data.onboardingCompleted) data.onboardingCompleted = {};
+  data.onboardingCompleted[profileId] = true;
+  saveData(data);
+}
+
+export function resetOnboarding(profileId: string): void {
+  const data = loadData();
+  if (data.onboardingCompleted) {
+    delete data.onboardingCompleted[profileId];
+    saveData(data);
+  }
+}
+
 const NOTIFICATION_SETTINGS_KEY = 'notification-settings';
 const NOTIFIED_GOALS_KEY = 'notified-goals';
 const NOTIFIED_GOALS_DATE_KEY = 'notified-goals-date';

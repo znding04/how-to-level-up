@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData, saveData, loadProfileData, todayString, generateId } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
 import { recordHabitCompletion } from '@/lib/reminders';
+import OnboardingModal from '@/components/OnboardingModal';
 import Link from 'next/link';
 
 function getGreeting(): string {
@@ -45,6 +46,7 @@ export default function DashboardPage() {
     const d = loadData();
     return runAchievementCheck(d);
   });
+  const [showOnboarding, setShowOnboarding] = useState(() => needsOnboarding(data, data.activeProfileId));
   const initialLog = (() => {
     const pd = loadProfileData(data);
     return pd.dailyLogs.find((l) => l.date === todayString());
@@ -220,6 +222,16 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4">
+      {showOnboarding && (
+        <OnboardingModal
+          profileId={data.activeProfileId}
+          onComplete={(updatedData) => {
+            setData(runAchievementCheck(updatedData));
+            setShowOnboarding(false);
+          }}
+        />
+      )}
+
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold">{getGreeting()}</h1>

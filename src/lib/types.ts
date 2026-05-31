@@ -84,4 +84,5 @@ export interface AppData {
   dailyLogs: DailyLog[];
   skills: Skill[];
   achievements?: Record<string, Achievement[]>; // profileId -> unlocked achievements
+  onboardingCompleted?: Record<string, boolean>;
 }
