@@ -3,12 +3,31 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
-import { Habit } from '@/lib/types';
+import { Habit, HabitCategory } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { recordHabitCompletion } from '@/lib/reminders';
 import HabitReminders from '@/components/HabitReminders';
 
 const PRESET_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
+const HABIT_CATEGORIES: { value: HabitCategory; label: string; icon: string; color: string }[] = [
+  { value: 'health', label: 'Health', icon: '🍎', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  { value: 'fitness', label: 'Fitness', icon: '💪', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  { value: 'learning', label: 'Learning', icon: '📚', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  { value: 'work', label: 'Work', icon: '💼', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  { value: 'personal', label: 'Personal', icon: '🌱', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+  { value: 'mindfulness', label: 'Mindfulness', icon: '🧘', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
+];
+
+function getCategoryStyle(cat?: HabitCategory): string {
+  const found = HABIT_CATEGORIES.find((c) => c.value === cat);
+  return found ? found.color : 'bg-surface text-fg-muted border-card-border';
+}
+
+function getCategoryLabel(cat?: HabitCategory): string {
+  const found = HABIT_CATEGORIES.find((c) => c.value === cat);
+  return found ? `${found.icon} ${found.label}` : '';
+}
 
 interface HabitTemplate {
   name: string;
@@ -100,11 +119,14 @@ export default function HabitsPage() {
   const [newName, setNewName] = useState('');
   const [newFrequency, setNewFrequency] = useState<'daily' | 'weekly'>('daily');
   const [newScheduledDays, setNewScheduledDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+  const [newCategory, setNewCategory] = useState<HabitCategory | ''>('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editFrequency, setEditFrequency] = useState<'daily' | 'weekly'>('daily');
   const [editColor, setEditColor] = useState('#3b82f6');
   const [editScheduledDays, setEditScheduledDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+  const [editCategory, setEditCategory] = useState<HabitCategory | ''>('');
+  const [filterCategory, setFilterCategory] = useState<HabitCategory | 'all'>('all');
   const [showTemplates, setShowTemplates] = useState(false);
   const [templateAdded, setTemplateAdded] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
@@ -142,6 +164,7 @@ export default function HabitsPage() {
       frequency: newFrequency,
       scheduledDays: newScheduledDays,
       color: pickColor(),
+      category: newCategory || undefined,
       createdAt: today,
       completions: {},
     };
@@ -149,10 +172,21 @@ export default function HabitsPage() {
     setNewName('');
     setNewFrequency('daily');
     setNewScheduledDays([0, 1, 2, 3, 4, 5, 6]);
+    setNewCategory('');
   }
 
-  function addFromTemplate(template: HabitTemplate) {
+  function addFromTemplate(template: HabitTemplate, groupLabel: string) {
     const data = loadData();
+    // Map template group label to category
+    const categoryMap: Record<string, HabitCategory> = {
+      'Morning Routine': 'personal',
+      'Fitness': 'fitness',
+      'Learning': 'learning',
+      'Health': 'health',
+      'Productivity': 'work',
+      'Mindfulness': 'mindfulness',
+    };
+    const category = categoryMap[groupLabel] || undefined;
     const habit: Habit = {
       id: generateId(),
       profileId: data.activeProfileId,
@@ -160,6 +194,7 @@ export default function HabitsPage() {
       frequency: template.frequency,
       scheduledDays: template.scheduledDays,
       color: pickColor(),
+      category,
       createdAt: today,
       completions: {},
     };
@@ -211,13 +246,14 @@ export default function HabitsPage() {
     setEditFrequency(habit.frequency);
     setEditColor(habit.color);
     setEditScheduledDays(habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6]);
+    setEditCategory(habit.category ?? '');
   }
 
   function saveEdit(id: string) {
     if (!editName.trim() || editScheduledDays.length === 0) return;
     const updated = habits.map((h) => {
       if (h.id !== id) return h;
-      return { ...h, name: editName.trim(), frequency: editFrequency, color: editColor, scheduledDays: editScheduledDays };
+      return { ...h, name: editName.trim(), frequency: editFrequency, color: editColor, scheduledDays: editScheduledDays, category: editCategory || undefined };
     });
     persist(updated);
     setEditingId(null);
@@ -442,6 +478,28 @@ export default function HabitsPage() {
             </button>
           ))}
         </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-fg-secondary">Category:</span>
+          <button
+            onClick={() => setNewCategory('')}
+            className={`text-xs px-2 py-1 rounded border transition-colors ${
+              newCategory === '' ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface text-fg-secondary border-card-border'
+            }`}
+          >
+            None
+          </button>
+          {HABIT_CATEGORIES.map((cat) => (
+            <button
+              key={cat.value}
+              onClick={() => setNewCategory(cat.value)}
+              className={`text-xs px-2 py-1 rounded border transition-colors ${
+                newCategory === cat.value ? 'bg-blue-600 text-white border-blue-600' : `${cat.color} border`
+              }`}
+            >
+              {cat.icon} {cat.label}
+            </button>
+          ))}
+        </div>
         <button
           onClick={() => setShowTemplates(!showTemplates)}
           className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
@@ -466,7 +524,7 @@ export default function HabitsPage() {
                   return (
                     <button
                       key={template.name}
-                      onClick={() => !alreadyAdded && addFromTemplate(template)}
+                      onClick={() => !alreadyAdded && addFromTemplate(template, group.label)}
                       disabled={alreadyAdded}
                       className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
                         alreadyAdded
@@ -490,7 +548,7 @@ export default function HabitsPage() {
       )}
 
       {habits.length > 0 && (
-        <div className="mb-4">
+        <div className="mb-4 space-y-3">
           <input
             type="text"
             value={searchInput}
@@ -498,6 +556,28 @@ export default function HabitsPage() {
             placeholder="Search habits..."
             className="w-full border border-border bg-card rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-fg-secondary">Filter:</span>
+            <button
+              onClick={() => setFilterCategory('all')}
+              className={`text-xs px-2 py-1 rounded transition-colors ${
+                filterCategory === 'all' ? 'bg-blue-600 text-white' : 'bg-surface text-fg-secondary'
+              }`}
+            >
+              All
+            </button>
+            {HABIT_CATEGORIES.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => setFilterCategory(cat.value)}
+                className={`text-xs px-2 py-1 rounded border transition-colors ${
+                  filterCategory === cat.value ? 'bg-blue-600 text-white border-blue-600' : `${cat.color} border`
+                }`}
+              >
+                {cat.icon} {cat.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -505,13 +585,21 @@ export default function HabitsPage() {
         <p className="text-fg-muted text-center mt-12">
           No habits yet. Add one to get started!
         </p>
-      ) : habits.filter((h) => h.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+      ) : habits.filter((h) => {
+            const matchesSearch = h.name.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesCategory = filterCategory === 'all' || h.category === filterCategory;
+            return matchesSearch && matchesCategory;
+          }).length === 0 ? (
         <p className="text-fg-muted text-center mt-12">
-          No habits match your search
+          {searchQuery || filterCategory !== 'all' ? 'No habits match your filter' : 'No habits match your search'}
         </p>
       ) : (
         <div className="space-y-3">
-          {habits.filter((h) => h.name.toLowerCase().includes(searchQuery.toLowerCase())).map((habit) => (
+          {habits.filter((h) => {
+            const matchesSearch = h.name.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesCategory = filterCategory === 'all' || h.category === filterCategory;
+            return matchesSearch && matchesCategory;
+          }).map((habit) => (
             <div
               key={habit.id}
               className="bg-card border border-card-border rounded-xl p-4"
@@ -582,6 +670,28 @@ export default function HabitsPage() {
                       />
                     ))}
                   </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-fg-secondary">Category:</span>
+                    <button
+                      onClick={() => setEditCategory('')}
+                      className={`text-xs px-2 py-1 rounded border transition-colors ${
+                        editCategory === '' ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface text-fg-secondary border-card-border'
+                      }`}
+                    >
+                      None
+                    </button>
+                    {HABIT_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.value}
+                        onClick={() => setEditCategory(cat.value)}
+                        className={`text-xs px-2 py-1 rounded border transition-colors ${
+                          editCategory === cat.value ? 'bg-blue-600 text-white border-blue-600' : `${cat.color} border`
+                        }`}
+                      >
+                        {cat.icon} {cat.label}
+                      </button>
+                    ))}
+                  </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => saveEdit(habit.id)}
@@ -610,14 +720,21 @@ export default function HabitsPage() {
                     {habit.completions[today] && '✓'}
                   </button>
                   <div className="flex-1">
-                    <span
-                      className={`font-medium ${
-                        habit.completions[today] ? 'line-through text-fg-muted' : ''
-                      }`}
-                    >
-                      {habit.name}
-                    </span>
-                    <span className="text-xs text-fg-muted ml-2">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`font-medium ${
+                          habit.completions[today] ? 'line-through text-fg-muted' : ''
+                        }`}
+                      >
+                        {habit.name}
+                      </span>
+                      {habit.category && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded border ${getCategoryStyle(habit.category)}`}>
+                          {getCategoryLabel(habit.category)}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-fg-muted ml-1">
                       {habit.scheduledDays && habit.scheduledDays.length < 7
                         ? habit.scheduledDays.sort((a, b) => a - b).map((d) => DAY_LABELS[d]).join('/')
                         : ''}

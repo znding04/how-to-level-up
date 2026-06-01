@@ -4,6 +4,8 @@ export interface Profile {
   createdAt: string;
 }
 
+export type HabitCategory = 'health' | 'work' | 'learning' | 'personal' | 'fitness' | 'mindfulness';
+
 export interface Habit {
   id: string;
   profileId: string;
@@ -11,6 +13,7 @@ export interface Habit {
   frequency: 'daily' | 'weekly';
   scheduledDays?: number[]; // 0=Sun, 1=Mon, ..., 6=Sat
   color: string;
+  category?: HabitCategory;
   createdAt: string;
   completions: Record<string, boolean>;
 }
