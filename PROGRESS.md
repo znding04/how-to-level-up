@@ -219,6 +219,17 @@
 - **TabNav**: Added "Insights" tab with lightbulb SVG icon between Skills and Review
 - `npm run lint` — 0 errors, `npm run build` — success (17 static pages including /insights)
 
+## 2026-06-01
+### Added: Habit Categories
+- **HabitCategory type** (`src/lib/types.ts`): New `HabitCategory` type — `'health' | 'fitness' | 'learning' | 'work' | 'personal' | 'mindfulness'`
+- **Category field on Habit** (`src/lib/types.ts`): Added optional `category?: HabitCategory` field to `Habit` interface
+- **Category selector** (`src/app/habits/page.tsx`): Category dropdown in both create form and edit mode
+- **Category filter bar**: Horizontal filter bar above habit list to view all or filter by category
+- **Category badge**: Color-coded badge with icon + label on each habit card for quick scanning
+- **Template auto-assignment**: Habits added from templates automatically get the category matching their template group (e.g., Fitness templates → fitness, Learning templates → learning)
+- 6 categories: Health (red), Fitness (orange), Learning (blue), Work (purple), Personal (teal), Mindfulness (pink)
+- `npm run lint` — 0 errors, `npm run build` — success (17 static pages)
+
 ## Future Ideas
 - ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
