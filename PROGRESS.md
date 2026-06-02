@@ -230,8 +230,21 @@
 - 6 categories: Health (red), Fitness (orange), Learning (blue), Work (purple), Personal (teal), Mindfulness (pink)
 - `npm run lint` — 0 errors, `npm run build` — success (17 static pages)
 
+## 2026-06-02
+### Added: Focus/Timer Page
+- **Focus page** (`/focus`): New page accessible via "Focus" tab in bottom nav between Daily and Calendar
+- **Circular countdown ring**: SVG-based progress ring that depletes as the timer runs, showing remaining time in large text
+- **Skill selection**: Dropdown to choose which skill to practice during the session (reads from existing skills)
+- **Duration presets**: Quick-select buttons for 15, 25, 45, 60 minute timers
+- **Custom duration**: Input field to enter any number of minutes
+- **Timer controls**: Play (start), Pause, and Reset buttons with visual state changes
+- **Auto-logging**: On timer completion, session is automatically saved to the selected skill via existing `saveData()` pattern — includes duration and note "Focus session completed"
+- **Session summary**: Shows total minutes practiced and session count after completion; dismissable to reset
+- Uses same `bg-card border-card-border` styling as other pages, fully theme-compatible via CSS variables
+- TabNav: Added "Focus" tab with clock SVG icon between Daily and Calendar tabs
+- `npm run lint` — 0 errors, `npm run build` — success (18 static pages including /focus)
+
 ## Future Ideas
-- ~~Deploy to a free host (Vercel, Cloudflare Pages, Netlify)~~ (configured 2026-05-14, pending auth)
 - ~~PWA: Add to home screen prompt~~ (done 2026-05-13)
 - ~~Milestone notifications/reminders~~ (done 2026-05-15)
 - ~~Multiple data profiles~~ (done 2026-05-16)
