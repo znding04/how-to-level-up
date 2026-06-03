@@ -207,6 +207,30 @@ export default function NotificationSettings({
         </button>
       </label>
 
+      {/* Focus Sound */}
+      <label className="flex items-center justify-between cursor-pointer">
+        <div>
+          <p className="text-sm font-medium">Focus Timer Sound</p>
+          <p className="text-xs text-fg-muted">
+            Play a tone when focus sessions complete
+          </p>
+        </div>
+        <button
+          role="switch"
+          aria-checked={!settings.focusSoundMuted}
+          onClick={() => updateSettings({ focusSoundMuted: !settings.focusSoundMuted })}
+          className={`relative w-11 h-6 rounded-full transition-colors ${
+            !settings.focusSoundMuted ? 'bg-blue-600' : 'bg-surface-dim'
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+              !settings.focusSoundMuted ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
+      </label>
+
       {/* Smart Reminders */}
       <div className="border-t border-border pt-4 space-y-3">
         <div>

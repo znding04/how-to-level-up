@@ -63,6 +63,16 @@ export interface SkillSession {
   notes: string;
 }
 
+export interface FocusSession {
+  id: string;
+  skillId: string;
+  skillName: string;
+  skillColor: string;
+  date: string;
+  durationMinutes: number;
+  note: string;
+}
+
 export interface Achievement {
   id: string;
   title: string;
@@ -77,6 +87,7 @@ export interface NotificationSettings {
   dailyReminderTime: string; // HH:MM
   goalAlerts: boolean;
   streakAlerts: boolean;
+  focusSoundMuted: boolean;
 }
 
 export interface AppData {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { loadData, saveData, loadProfileData, todayString, generateId } from '@/lib/storage';
 import { recordHabitCompletion } from '@/lib/reminders';
@@ -9,6 +9,7 @@ export default function QuickAddFAB() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [activePanel, setActivePanel] = useState<'habits' | 'checkin' | 'skill' | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Habit logging state
   const [habitData, setHabitData] = useState<{ id: string; name: string; color: string; done: boolean }[]>([]);
@@ -24,8 +25,18 @@ export default function QuickAddFAB() {
   const [sessionMinutes, setSessionMinutes] = useState(30);
   const [skillSuccess, setSkillSuccess] = useState(false);
 
-  // Hide on settings page
+  // Track fullscreen state to hide FAB during focus mode
+  useEffect(() => {
+    function onFullscreenChange() {
+      setIsFullscreen(!!document.fullscreenElement);
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
+  // Hide on settings page or in fullscreen focus mode
   if (pathname.startsWith('/settings')) return null;
+  if (isFullscreen) return null;
 
   function openPanel(panel: 'habits' | 'checkin' | 'skill') {
     const data = loadData();

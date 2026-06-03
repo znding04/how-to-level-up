@@ -1,4 +1,4 @@
-import { AppData, NotificationSettings, Profile } from './types';
+import { AppData, FocusSession, NotificationSettings, Profile } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -176,6 +176,31 @@ export function resetOnboarding(profileId: string): void {
   }
 }
 
+const FOCUS_SESSIONS_KEY = 'focusSessions';
+
+export function loadFocusSessions(): FocusSession[] {
+  if (typeof window === 'undefined') return [];
+  const raw = localStorage.getItem(FOCUS_SESSIONS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export function saveFocusSession(session: FocusSession): void {
+  if (typeof window === 'undefined') return;
+  const sessions = loadFocusSessions();
+  sessions.unshift(session);
+  localStorage.setItem(FOCUS_SESSIONS_KEY, JSON.stringify(sessions));
+}
+
+export function clearFocusSessions(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(FOCUS_SESSIONS_KEY);
+}
+
 const NOTIFICATION_SETTINGS_KEY = 'notification-settings';
 const NOTIFIED_GOALS_KEY = 'notified-goals';
 const NOTIFIED_GOALS_DATE_KEY = 'notified-goals-date';
@@ -185,6 +210,7 @@ const defaultNotificationSettings: NotificationSettings = {
   dailyReminderTime: '20:00',
   goalAlerts: false,
   streakAlerts: false,
+  focusSoundMuted: false,
 };
 
 export function loadNotificationSettings(): NotificationSettings {
