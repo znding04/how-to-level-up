@@ -1,5 +1,16 @@
 # 变强 — Progress Log
 
+## 2026-06-03
+### Added: Focus Session History + Pomodoro Mode + Fullscreen + Sounds
+- **FocusSession type** (`src/lib/types.ts`): `{ id, skillId, skillName, skillColor, date, durationMinutes, note }`
+- **Focus session storage** (`src/lib/storage.ts`): `loadFocusSessions()`, `saveFocusSession()`, `clearFocusSessions()` via `focusSessions` localStorage key
+- **Session History panel** (`src/app/focus/page.tsx`): Collapsible panel below timer showing last 10 sessions — skill color dot, name, duration, relative time; "Clear History" with confirmation
+- **Pomodoro Mode**: Toggle switch enabling auto-cycling between work sessions (selected duration) and breaks (5min, 15min long break after every 4th); phase indicator badge showing "Work" vs "Break" and count (e.g., "2/4"); stores preference in localStorage
+- **Full-Screen Focus Mode**: Expand button triggers `requestFullscreen()` during active timer; shows large circular ring, skill name, elapsed/remaining time; ESC or "Exit Full Screen" exits; QuickAddFAB hides during fullscreen
+- **Sound Notifications**: Web Audio API tones — ascending tone for work session done, gentle chime for break done; mute toggle on focus page and in NotificationSettings
+- **NotificationSettings**: Added "Focus Timer Sound" toggle for enable/disable
+- `npm run lint` — 0 errors, `npm run build` — 18 static pages
+
 ## 2026-05-09
 ### Added: PWA Support + Data Export/Import
 - **PWA Manifest** (`public/manifest.json`): App name, standalone display, dark theme, icon references
