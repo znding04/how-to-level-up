@@ -63,6 +63,34 @@ export interface SkillSession {
   notes: string;
 }
 
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master';
+
+export const SKILL_LEVELS: { key: SkillLevel; label: string; minHours: number; color: string }[] = [
+  { key: 'beginner', label: 'Beginner', minHours: 0, color: 'text-gray-400' },
+  { key: 'intermediate', label: 'Intermediate', minHours: 10, color: 'text-blue-400' },
+  { key: 'advanced', label: 'Advanced', minHours: 30, color: 'text-purple-400' },
+  { key: 'expert', label: 'Expert', minHours: 60, color: 'text-orange-400' },
+  { key: 'master', label: 'Master', minHours: 120, color: 'text-pink-400' },
+];
+
+export function getSkillLevel(totalMinutes: number): { level: SkillLevel; label: string; color: string; xpPercent: number; totalHours: number; nextLevelHours: number } {
+  const totalHours = totalMinutes / 60;
+  let level = SKILL_LEVELS[0];
+  for (let i = SKILL_LEVELS.length - 1; i >= 0; i--) {
+    if (totalHours >= SKILL_LEVELS[i].minHours) {
+      level = SKILL_LEVELS[i];
+      break;
+    }
+  }
+  const idx = SKILL_LEVELS.findIndex(l => l.key === level.key);
+  const nextLevel = SKILL_LEVELS[idx + 1];
+  const hoursInLevel = totalHours - level.minHours;
+  const xpPercent = nextLevel
+    ? Math.min(100, (hoursInLevel / (nextLevel.minHours - level.minHours)) * 100)
+    : 100;
+  return { level: level.key, label: level.label, color: level.color, xpPercent, totalHours, nextLevelHours: nextLevel?.minHours ?? level.minHours };
+}
+
 export interface FocusSession {
   id: string;
   skillId: string;

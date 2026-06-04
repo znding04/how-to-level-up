@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
-import { Skill } from '@/lib/types';
+import { Skill, getSkillLevel } from '@/lib/types';
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>(() => {
@@ -99,12 +99,9 @@ export default function SkillsPage() {
     return (minutes / 60).toFixed(1);
   }
 
-  function getLevel(skill: Skill): string {
-    const hours = skill.sessions.reduce((sum, s) => sum + s.durationMinutes, 0) / 60;
-    if (hours >= 100) return 'Advanced';
-    if (hours >= 30) return 'Intermediate';
-    if (hours >= 5) return 'Beginner';
-    return 'Novice';
+  function getLevel(skill: Skill) {
+    const totalMinutes = skill.sessions.reduce((sum, s) => sum + s.durationMinutes, 0);
+    return getSkillLevel(totalMinutes);
   }
 
   function getLastSession(skill: Skill): string | null {
@@ -195,8 +192,8 @@ export default function SkillsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs bg-surface px-2 py-1 rounded">
-                    {getLevel(skill)}
+                  <span className={`text-xs font-medium bg-surface px-2 py-1 rounded-full ${getLevel(skill).color}`}>
+                    {getLevel(skill).label}
                   </span>
                   {editingId !== skill.id && (
                     <>
@@ -233,6 +230,23 @@ export default function SkillsPage() {
                 >
                   Log session
                 </button>
+              </div>
+
+              {/* XP Progress Bar */}
+              <div className="mt-2">
+                <div className="flex items-center justify-between text-xs text-fg-muted mb-1">
+                  <span>{getLevel(skill).label}</span>
+                  <span>{Math.round(getLevel(skill).xpPercent)}% XP</span>
+                </div>
+                <div className="w-full h-1.5 bg-surface rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${getLevel(skill).xpPercent}%`,
+                      backgroundColor: skill.color,
+                    }}
+                  />
+                </div>
               </div>
 
               {loggingId === skill.id && (
