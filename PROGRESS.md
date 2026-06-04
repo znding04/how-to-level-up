@@ -1,5 +1,14 @@
 # 变强 — Progress Log
 
+## 2026-06-04
+### Added: Skill Progression System (Levels + XP)
+- **SkillLevel type** (`src/lib/types.ts`): `SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master'`
+- **SKILL_LEVELS constant**: 5 tiers with hour thresholds (0h, 10h, 30h, 60h, 120h) and associated colors
+- **getSkillLevel() function** (`src/lib/types.ts`): Computes level, label, color, XP percentage, total hours, and next level hours from total practice minutes
+- **Level badge on skill cards**: Colored pill showing current level (gray/blue/purple/orange/pink per tier)
+- **XP progress bar**: Thin bar on each skill card showing progress toward the next level
+- `npm run lint` — 0 errors, `npm run build` — 17 static pages
+
 ## 2026-06-03
 ### Added: Focus Session History + Pomodoro Mode + Fullscreen + Sounds
 - **FocusSession type** (`src/lib/types.ts`): `{ id, skillId, skillName, skillColor, date, durationMinutes, note }`
