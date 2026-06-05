@@ -591,7 +591,11 @@ export default function HabitsPage() {
             return matchesSearch && matchesCategory;
           }).length === 0 ? (
         <p className="text-fg-muted text-center mt-12">
-          {searchQuery || filterCategory !== 'all' ? 'No habits match your filter' : 'No habits match your search'}
+          {searchQuery && filterCategory !== 'all'
+            ? 'No habits match your search and filter'
+            : searchQuery
+              ? 'No habits match your search'
+              : 'No habits match this filter'}
         </p>
       ) : (
         <div className="space-y-3">

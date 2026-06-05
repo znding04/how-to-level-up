@@ -402,7 +402,7 @@ export default function DashboardPage() {
 
       {/* Habits Summary */}
       <Link href="/habits" className="block">
-        <div className="bg-card border border-card-border rounded-2xl p-4">
+        <div className="bg-card border border-card-border hover:border-blue-500/40 rounded-2xl p-4 transition-colors">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-semibold flex items-center gap-2">
               🔄 Habits
@@ -444,7 +444,7 @@ export default function DashboardPage() {
 
       {/* Daily Check-in */}
       <Link href="/daily" className="block">
-        <div className="bg-card border border-card-border rounded-2xl p-4">
+        <div className="bg-card border border-card-border hover:border-blue-500/40 rounded-2xl p-4 transition-colors">
           <h2 className="font-semibold flex items-center gap-2 mb-2">
             📝 Daily Check-in
           </h2>
@@ -467,7 +467,7 @@ export default function DashboardPage() {
 
       {/* Goals Progress */}
       <Link href="/goals" className="block">
-        <div className="bg-card border border-card-border rounded-2xl p-4">
+        <div className="bg-card border border-card-border hover:border-blue-500/40 rounded-2xl p-4 transition-colors">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-semibold flex items-center gap-2">
               🎯 Goals
@@ -499,7 +499,7 @@ export default function DashboardPage() {
 
       {/* Skills Practice */}
       <Link href="/skills" className="block">
-        <div className="bg-card border border-card-border rounded-2xl p-4">
+        <div className="bg-card border border-card-border hover:border-blue-500/40 rounded-2xl p-4 transition-colors">
           <h2 className="font-semibold flex items-center gap-2 mb-2">
             ⚡ Skills Practice
           </h2>
@@ -518,14 +518,15 @@ export default function DashboardPage() {
       </Link>
 
       {/* Achievements */}
-      <div className="bg-card border border-card-border rounded-2xl p-4">
+      <Link href="/achievements" className="block">
+      <div className="bg-card border border-card-border hover:border-blue-500/40 rounded-2xl p-4 transition-colors">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold flex items-center gap-2">
             🏆 Achievements
           </h2>
-          <Link href="/achievements" className="text-sm text-blue-400 hover:underline">
-            View All
-          </Link>
+          <span className="text-sm text-blue-400">
+            View All →
+          </span>
         </div>
 
         {/* Progress bar */}
@@ -555,6 +556,7 @@ export default function DashboardPage() {
           </p>
         )}
       </div>
+      </Link>
 
     </div>
   );

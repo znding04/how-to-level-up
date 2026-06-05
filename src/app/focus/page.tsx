@@ -397,6 +397,12 @@ export default function FocusPage() {
             </button>
           </div>
         )}
+
+        {sessionsCompleted > 0 && (
+          <p className="mt-4 text-sm text-fg-muted">
+            {sessionsCompleted} session{sessionsCompleted !== 1 ? 's' : ''} completed
+          </p>
+        )}
       </div>
     );
   }
@@ -559,13 +565,22 @@ export default function FocusPage() {
         {/* Controls */}
         <div className="flex items-center gap-3">
           {timerState === 'idle' && !breakReady && (
-            <button
-              onClick={start}
-              disabled={remainingSeconds <= 0 || (!selectedSkillId && skills.length > 0)}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-surface-dim disabled:text-fg-muted text-white rounded-lg font-medium text-sm transition-colors"
-            >
-              {skills.length > 0 && !selectedSkillId ? 'Select a skill' : 'Start'}
-            </button>
+            <>
+              <button
+                onClick={start}
+                disabled={remainingSeconds <= 0 || (!selectedSkillId && skills.length > 0)}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-surface-dim disabled:text-fg-muted text-white rounded-lg font-medium text-sm transition-colors"
+              >
+                {skills.length > 0 && !selectedSkillId ? 'Select a skill' : 'Start'}
+              </button>
+              <button
+                onClick={toggleFullscreen}
+                className="px-3 py-2 bg-surface hover:bg-surface-hover border border-card-border rounded-lg text-sm transition-colors"
+                aria-label="Full screen"
+              >
+                ⛶
+              </button>
+            </>
           )}
           {timerState === 'running' && (
             <>

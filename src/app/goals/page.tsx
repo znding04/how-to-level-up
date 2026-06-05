@@ -31,6 +31,7 @@ export default function GoalsPage() {
     return loadProfileData(data).goals;
   });
   const [newTitle, setNewTitle] = useState('');
+  const [newTargetDate, setNewTargetDate] = useState('');
   const [newCategory, setNewCategory] = useState<GoalCategory | ''>('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
@@ -64,7 +65,7 @@ export default function GoalsPage() {
       profileId: data.activeProfileId,
       title: newTitle.trim(),
       description: '',
-      targetDate: '',
+      targetDate: newTargetDate,
       category: newCategory || undefined,
       milestones: [],
       status: 'active',
@@ -72,6 +73,7 @@ export default function GoalsPage() {
     };
     persist([...goals, goal]);
     setNewTitle('');
+    setNewTargetDate('');
     setNewCategory('');
   }
 
@@ -174,6 +176,23 @@ export default function GoalsPage() {
           >
             Add
           </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-fg-secondary">Target:</span>
+          <input
+            type="date"
+            value={newTargetDate}
+            onChange={(e) => setNewTargetDate(e.target.value)}
+            className="bg-input border border-input-border rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {newTargetDate && (
+            <button
+              onClick={() => setNewTargetDate('')}
+              className="text-xs text-fg-muted hover:text-fg-secondary transition-colors"
+            >
+              Clear
+            </button>
+          )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-fg-secondary">Category:</span>
