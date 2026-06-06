@@ -176,6 +176,31 @@ export function resetOnboarding(profileId: string): void {
   }
 }
 
+export function loadHabitNotes(): Record<string, Record<string, string>> {
+  const data = loadData();
+  return data.habitNotes ?? {};
+}
+
+export function saveHabitNote(habitId: string, date: string, note: string): void {
+  const data = loadData();
+  if (!data.habitNotes) data.habitNotes = {};
+  if (!data.habitNotes[habitId]) data.habitNotes[habitId] = {};
+  if (note.trim()) {
+    data.habitNotes[habitId][date] = note.trim().slice(0, 140);
+  } else {
+    delete data.habitNotes[habitId][date];
+  }
+  saveData(data);
+}
+
+export function removeHabitNote(habitId: string, date: string): void {
+  const data = loadData();
+  if (data.habitNotes?.[habitId]) {
+    delete data.habitNotes[habitId][date];
+    saveData(data);
+  }
+}
+
 const FOCUS_SESSIONS_KEY = 'focusSessions';
 
 export function loadFocusSessions(): FocusSession[] {

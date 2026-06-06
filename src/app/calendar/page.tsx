@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { loadData, loadProfileData } from '@/lib/storage';
+import { loadData, loadProfileData, loadHabitNotes } from '@/lib/storage';
 import { Habit, Goal, DailyLog, Skill } from '@/lib/types';
 
 const MOOD_EMOJI: Record<number, string> = { 1: '😞', 2: '😕', 3: '😐', 4: '🙂', 5: '😄' };
@@ -91,6 +91,11 @@ export default function CalendarPage() {
     if (typeof window === 'undefined') return { habits: [] as Habit[], goals: [] as Goal[], dailyLogs: [] as DailyLog[], skills: [] as Skill[] };
     const data = loadData();
     return loadProfileData(data);
+  }, []);
+
+  const allNotes = useMemo(() => {
+    if (typeof window === 'undefined') return {} as Record<string, Record<string, string>>;
+    return loadHabitNotes();
   }, []);
 
   // Index daily logs by date
@@ -254,13 +259,17 @@ export default function CalendarPage() {
               <p className="text-xs text-fg-muted">No habits tracked</p>
             ) : (
               <div className="space-y-1">
-                {selectedHabits.map((h) => (
-                  <div key={h.id} className="flex items-center gap-2 text-sm">
-                    <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: h.color }} />
-                    <span className={h.completed ? 'text-green-400' : 'text-fg-muted'}>{h.name}</span>
-                    <span className="text-xs">{h.completed ? '✓' : '—'}</span>
-                  </div>
-                ))}
+                {selectedHabits.map((h) => {
+                  const note = selectedDate ? allNotes[h.id]?.[selectedDate] : undefined;
+                  return (
+                    <div key={h.id} className="flex items-center gap-2 text-sm">
+                      <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: h.color }} />
+                      <span className={h.completed ? 'text-green-400' : 'text-fg-muted'}>{h.name}</span>
+                      <span className="text-xs">{h.completed ? '✓' : '—'}</span>
+                      {note && <span className="text-xs text-fg-muted">📝 {note}</span>}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

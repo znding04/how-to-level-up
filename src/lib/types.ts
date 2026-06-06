@@ -127,4 +127,5 @@ export interface AppData {
   skills: Skill[];
   achievements?: Record<string, Achievement[]>; // profileId -> unlocked achievements
   onboardingCompleted?: Record<string, boolean>;
+  habitNotes?: Record<string, Record<string, string>>; // habitId -> date -> note
 }

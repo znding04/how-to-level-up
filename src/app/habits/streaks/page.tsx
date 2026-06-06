@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { loadData, loadProfileData, todayString } from '@/lib/storage';
+import { loadData, loadProfileData, todayString, loadHabitNotes } from '@/lib/storage';
 import { Habit } from '@/lib/types';
 
 function getStreak(habit: Habit): number {
@@ -93,14 +93,14 @@ function getBestStreak(habit: Habit): number {
   return best;
 }
 
-function getLast30Days(habit: Habit): boolean[] {
-  const result: boolean[] = [];
+function getLast30Days(habit: Habit): { completed: boolean; dateKey: string }[] {
+  const result: { completed: boolean; dateKey: string }[] = [];
   const d = new Date();
   for (let i = 29; i >= 0; i--) {
     const check = new Date(d);
     check.setDate(d.getDate() - i);
     const key = check.toISOString().split('T')[0];
-    result.push(!!habit.completions[key]);
+    result.push({ completed: !!habit.completions[key], dateKey: key });
   }
   return result;
 }
@@ -130,6 +130,10 @@ export default function HabitStreaksPage() {
     if (typeof window === 'undefined') return [];
     const data = loadData();
     return loadProfileData(data).habits;
+  });
+  const [allNotes] = useState<Record<string, Record<string, string>>>(() => {
+    if (typeof window === 'undefined') return {};
+    return loadHabitNotes();
   });
 
   return (
@@ -205,22 +209,30 @@ export default function HabitStreaksPage() {
                 <div>
                   <p className="text-xs text-fg-muted mb-1.5">Last 30 days</p>
                   <div className="flex gap-px items-end h-6">
-                    {last30.map((completed, i) => (
-                      <div
-                        key={i}
-                        className="flex-1 rounded-sm"
-                        style={{
-                          height: completed ? '100%' : '20%',
-                          backgroundColor: completed
-                            ? status === 'active'
-                              ? '#22c55e'
-                              : status === 'at-risk'
-                                ? '#f97316'
-                                : '#6b7280'
-                            : 'var(--bar-track)',
-                        }}
-                      />
-                    ))}
+                    {last30.map((day, i) => {
+                      const note = allNotes[habit.id]?.[day.dateKey];
+                      return (
+                        <div
+                          key={i}
+                          className="flex-1 rounded-sm relative group"
+                          style={{
+                            height: day.completed ? '100%' : '20%',
+                            backgroundColor: day.completed
+                              ? status === 'active'
+                                ? '#22c55e'
+                                : status === 'at-risk'
+                                  ? '#f97316'
+                                  : '#6b7280'
+                              : 'var(--bar-track)',
+                          }}
+                          title={note ? `${day.dateKey}: ${note}` : day.dateKey}
+                        >
+                          {note && (
+                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-400" />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="flex justify-between mt-1">
                     <span className="text-[10px] text-fg-muted">30d ago</span>

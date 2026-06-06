@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
+import { loadData, saveData, generateId, todayString, loadProfileData, loadHabitNotes, saveHabitNote, removeHabitNote } from '@/lib/storage';
 import { Habit, HabitCategory } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { recordHabitCompletion } from '@/lib/reminders';
@@ -129,6 +129,12 @@ export default function HabitsPage() {
   const [filterCategory, setFilterCategory] = useState<HabitCategory | 'all'>('all');
   const [showTemplates, setShowTemplates] = useState(false);
   const [templateAdded, setTemplateAdded] = useState<string | null>(null);
+  const [habitNotes, setHabitNotes] = useState<Record<string, Record<string, string>>>(() => {
+    if (typeof window === 'undefined') return {};
+    return loadHabitNotes();
+  });
+  const [noteInputId, setNoteInputId] = useState<string | null>(null);
+  const [noteInputValue, setNoteInputValue] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -227,10 +233,12 @@ export default function HabitsPage() {
   }
 
   function toggleCompletion(id: string) {
+    const habit = habits.find((h) => h.id === id);
+    if (!habit) return;
+    const wasComplete = !!habit.completions[today];
     const updated = habits.map((h) => {
       if (h.id !== id) return h;
       const completions = { ...h.completions };
-      const wasComplete = !!completions[today];
       completions[today] = !wasComplete;
       if (!wasComplete) {
         recordHabitCompletion(id, new Date().getHours());
@@ -238,6 +246,48 @@ export default function HabitsPage() {
       return { ...h, completions };
     });
     persist(updated);
+
+    if (!wasComplete) {
+      // Completing: show note input
+      setNoteInputId(id);
+      setNoteInputValue(habitNotes[id]?.[today] ?? '');
+    } else {
+      // Uncompleting: remove note
+      setNoteInputId(null);
+      removeHabitNote(id, today);
+      setHabitNotes((prev) => {
+        const copy = { ...prev };
+        if (copy[id]) {
+          const inner = { ...copy[id] };
+          delete inner[today];
+          copy[id] = inner;
+        }
+        return copy;
+      });
+    }
+  }
+
+  function commitNote(habitId: string) {
+    const trimmed = noteInputValue.trim().slice(0, 140);
+    if (trimmed) {
+      saveHabitNote(habitId, today, trimmed);
+      setHabitNotes((prev) => ({
+        ...prev,
+        [habitId]: { ...(prev[habitId] ?? {}), [today]: trimmed },
+      }));
+    } else {
+      removeHabitNote(habitId, today);
+      setHabitNotes((prev) => {
+        const copy = { ...prev };
+        if (copy[habitId]) {
+          const inner = { ...copy[habitId] };
+          delete inner[today];
+          copy[habitId] = inner;
+        }
+        return copy;
+      });
+    }
+    setNoteInputId(null);
   }
 
   function startEdit(habit: Habit) {
@@ -712,68 +762,95 @@ export default function HabitsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => toggleCompletion(habit.id)}
-                    className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      habit.completions[today]
-                        ? 'border-green-500 bg-green-500/20 text-green-400'
-                        : 'border-input-border hover:border-fg-secondary'
-                    }`}
-                  >
-                    {habit.completions[today] && '✓'}
-                  </button>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`font-medium ${
-                          habit.completions[today] ? 'line-through text-fg-muted' : ''
-                        }`}
-                      >
-                        {habit.name}
-                      </span>
-                      {habit.category && (
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded border ${getCategoryStyle(habit.category)}`}>
-                          {getCategoryLabel(habit.category)}
+                <div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => toggleCompletion(habit.id)}
+                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${
+                        habit.completions[today]
+                          ? 'border-green-500 bg-green-500/20 text-green-400'
+                          : 'border-input-border hover:border-fg-secondary'
+                      }`}
+                    >
+                      {habit.completions[today] && '✓'}
+                    </button>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`font-medium ${
+                            habit.completions[today] ? 'line-through text-fg-muted' : ''
+                          }`}
+                        >
+                          {habit.name}
                         </span>
+                        {habit.category && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded border ${getCategoryStyle(habit.category)}`}>
+                            {getCategoryLabel(habit.category)}
+                          </span>
+                        )}
+                        {habitNotes[habit.id]?.[today] && noteInputId !== habit.id && (
+                          <button
+                            onClick={() => { setNoteInputId(habit.id); setNoteInputValue(habitNotes[habit.id][today]); }}
+                            className="text-xs text-fg-muted hover:text-fg-secondary transition-colors"
+                            title={habitNotes[habit.id][today]}
+                          >
+                            📝
+                          </button>
+                        )}
+                      </div>
+                      <span className="text-xs text-fg-muted ml-1">
+                        {habit.scheduledDays && habit.scheduledDays.length < 7
+                          ? habit.scheduledDays.sort((a, b) => a - b).map((d) => DAY_LABELS[d]).join('/')
+                          : ''}
+                      </span>
+                    </div>
+                    <div className="text-xs text-fg-secondary text-right space-y-0.5">
+                      {getStreak(habit) > 0 && (
+                        <div>🔥 {getStreak(habit)}{habit.frequency === 'weekly' ? 'w' : 'd'}</div>
+                      )}
+                      {getBestStreak(habit) > 0 && (
+                        <div className="text-fg-muted">Best: {getBestStreak(habit)}{habit.frequency === 'weekly' ? 'w' : 'd'}</div>
+                      )}
+                      {habit.frequency === 'daily' && (
+                        <div className="text-fg-muted">7d: {getWeeklyCompletionRate(habit)}%</div>
                       )}
                     </div>
-                    <span className="text-xs text-fg-muted ml-1">
-                      {habit.scheduledDays && habit.scheduledDays.length < 7
-                        ? habit.scheduledDays.sort((a, b) => a - b).map((d) => DAY_LABELS[d]).join('/')
-                        : ''}
-                    </span>
+                    <HabitReminders habitId={habit.id} habitName={habit.name} />
+                    <button
+                      onClick={() => startEdit(habit)}
+                      className="text-fg-muted hover:text-fg-secondary transition-colors"
+                      title="Edit"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => deleteHabit(habit.id)}
+                      className="text-fg-muted hover:text-red-400 transition-colors"
+                      title="Delete"
+                    >
+                      🗑️
+                    </button>
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: habit.color }}
+                    />
                   </div>
-                  <div className="text-xs text-fg-secondary text-right space-y-0.5">
-                    {getStreak(habit) > 0 && (
-                      <div>🔥 {getStreak(habit)}{habit.frequency === 'weekly' ? 'w' : 'd'}</div>
-                    )}
-                    {getBestStreak(habit) > 0 && (
-                      <div className="text-fg-muted">Best: {getBestStreak(habit)}{habit.frequency === 'weekly' ? 'w' : 'd'}</div>
-                    )}
-                    {habit.frequency === 'daily' && (
-                      <div className="text-fg-muted">7d: {getWeeklyCompletionRate(habit)}%</div>
-                    )}
-                  </div>
-                  <HabitReminders habitId={habit.id} habitName={habit.name} />
-                  <button
-                    onClick={() => startEdit(habit)}
-                    className="text-fg-muted hover:text-fg-secondary transition-colors"
-                    title="Edit"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={() => deleteHabit(habit.id)}
-                    className="text-fg-muted hover:text-red-400 transition-colors"
-                    title="Delete"
-                  >
-                    🗑️
-                  </button>
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: habit.color }}
-                  />
+                  {noteInputId === habit.id && (
+                    <div className="mt-2 ml-10">
+                      <input
+                        type="text"
+                        value={noteInputValue}
+                        onChange={(e) => setNoteInputValue(e.target.value.slice(0, 140))}
+                        onBlur={() => commitNote(habit.id)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') commitNote(habit.id); if (e.key === 'Escape') setNoteInputId(null); }}
+                        placeholder="Add a note..."
+                        maxLength={140}
+                        autoFocus
+                        className="w-full bg-input border border-input-border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-[10px] text-fg-muted">{noteInputValue.length}/140</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
