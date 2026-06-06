@@ -1,5 +1,15 @@
 # 变强 — Progress Log
 
+## 2026-06-06
+### Added: Habit Completion Notes
+- **habitNotes** (`src/lib/types.ts`): New `habitNotes?: Record<string, Record<string, string>>` field on `AppData` — outer key is habitId, inner key is date string, value is the note (max 140 chars)
+- **Storage helpers** (`src/lib/storage.ts`): `loadHabitNotes()`, `saveHabitNote()`, `removeHabitNote()` helpers for note CRUD
+- **Habits page** (`src/app/habits/page.tsx`): When completing a habit, an inline text input appears below the row with "Add a note..." placeholder; auto-saves on blur or Enter, dismisses on Escape; shows 📝 indicator next to habits that have a note for today (click to edit); on uncomplete the note is removed
+- **Streaks page** (`src/app/habits/streaks/page.tsx`): 30-day sparkline bars show a small blue dot on days that have notes; native tooltip on hover displays date and note text
+- **Calendar page** (`src/app/calendar/page.tsx`): Day detail panel shows 📝 + note text next to completed habits that have notes
+- **Backward compatible**: Existing `completions: Record<string, boolean>` data is untouched — notes stored separately in `habitNotes` field
+- `npm run lint` — 0 errors, `npm run build` — 18 static pages
+
 ## 2026-06-04
 ### Added: Skill Progression System (Levels + XP)
 - **SkillLevel type** (`src/lib/types.ts`): `SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'master'`
