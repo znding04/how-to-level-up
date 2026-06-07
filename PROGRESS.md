@@ -1,5 +1,14 @@
 # 变强 — Progress Log
 
+## 2026-06-07
+### Added: Weekly Planning / Intentions Page
+- **WeeklyPlan type** (`src/lib/types.ts`): `{ intention: string, priorities: string[], createdAt: string, updatedAt: string }` interface
+- **weeklyPlans storage** (`src/lib/storage.ts`): `loadWeeklyPlan()`, `saveWeeklyPlan()` helpers keyed by profileId and week (YYYY-WW format)
+- **Weekly page** (`/weekly`): New page with week navigation, intention textarea (280 chars max), up to 3 priority inputs, week overview panel showing habits scheduled, goals due, and days left in week
+- **TabNav update**: Added "Weekly" tab between Calendar and Review tabs
+- **Theme-compatible**: Uses CSS variable classes (bg-card, border-card-border, text-foreground, text-fg-secondary)
+- **Profile-aware**: Weekly plans are stored per profile and persist across sessions
+
 ## 2026-06-06
 ### Added: Habit Completion Notes
 - **habitNotes** (`src/lib/types.ts`): New `habitNotes?: Record<string, Record<string, string>>` field on `AppData` — outer key is habitId, inner key is date string, value is the note (max 140 chars)
