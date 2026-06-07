@@ -118,6 +118,13 @@ export interface NotificationSettings {
   focusSoundMuted: boolean;
 }
 
+export interface WeeklyPlan {
+  intention: string;
+  priorities: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   profiles: Profile[];
   activeProfileId: string;
@@ -128,4 +135,5 @@ export interface AppData {
   achievements?: Record<string, Achievement[]>; // profileId -> unlocked achievements
   onboardingCompleted?: Record<string, boolean>;
   habitNotes?: Record<string, Record<string, string>>; // habitId -> date -> note
+  weeklyPlans?: Record<string, Record<string, WeeklyPlan>>; // profileId -> weekKey -> plan
 }

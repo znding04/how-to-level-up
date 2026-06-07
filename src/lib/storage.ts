@@ -1,4 +1,4 @@
-import { AppData, FocusSession, NotificationSettings, Profile } from './types';
+import { AppData, FocusSession, NotificationSettings, Profile, WeeklyPlan } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -283,4 +283,32 @@ export function clearDailyNotifications(): void {
     localStorage.removeItem(NOTIFIED_GOALS_KEY);
     localStorage.setItem(NOTIFIED_GOALS_DATE_KEY, todayString());
   }
+}
+
+// --- Weekly Plans ---
+
+export function getWeekKey(date: Date): string {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diffToMonday = day === 0 ? 6 : day - 1;
+  d.setDate(d.getDate() - diffToMonday);
+  d.setDate(d.getDate() + 3); // Thursday of the week (ISO week)
+  const year = d.getFullYear();
+  const jan1 = new Date(year, 0, 1);
+  const days = Math.floor((d.getTime() - jan1.getTime()) / 86400000);
+  const weekNum = Math.ceil((days + jan1.getDay() + 1) / 7);
+  return `${year}-W${String(weekNum).padStart(2, '0')}`;
+}
+
+export function loadWeeklyPlan(profileId: string, weekKey: string): WeeklyPlan | null {
+  const data = loadData();
+  return data.weeklyPlans?.[profileId]?.[weekKey] ?? null;
+}
+
+export function saveWeeklyPlan(profileId: string, weekKey: string, plan: WeeklyPlan): void {
+  const data = loadData();
+  if (!data.weeklyPlans) data.weeklyPlans = {};
+  if (!data.weeklyPlans[profileId]) data.weeklyPlans[profileId] = {};
+  data.weeklyPlans[profileId][weekKey] = plan;
+  saveData(data);
 }
