@@ -1,5 +1,15 @@
 # 变强 — Progress Log
 
+## 2026-06-08
+### Added: Skill Categories System
+- **SkillCategory type** (`src/lib/types.ts`): `SkillCategory = 'health' | 'fitness' | 'learning' | 'work' | 'creative' | 'mindfulness'` with `SKILL_CATEGORY_CONFIG` constant (6 categories with colors and emoji icons matching habit categories pattern)
+- **Skills page** (`src/app/skills/page.tsx`): Added category dropdown in create/edit forms, category filter bar above list, and color-coded category badge with emoji on each skill card
+- **Skills Trends page** (`src/app/skills/trends/page.tsx`): Added category filter buttons alongside the skill selector
+- **Focus page** (`src/app/focus/page.tsx`): Shows category emoji badge next to skill names in selector and session history
+- **Review page** (`src/app/review/page.tsx`): Added category filter buttons in Skills Practice section with category icon badges
+- **QuickAddFAB** (`src/components/QuickAddFAB.tsx`): Shows category emoji icon next to skill names in skill dropdown when adding a quick session
+- `npm run lint` — 0 errors, `npm run build` — 19 static pages
+
 ## 2026-06-07
 ### Added: Weekly Planning / Intentions Page
 - **WeeklyPlan type** (`src/lib/types.ts`): `{ intention: string, priorities: string[], createdAt: string, updatedAt: string }` interface
