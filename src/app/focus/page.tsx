@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { loadData, saveData, loadProfileData, generateId, todayString, loadFocusSessions, saveFocusSession, clearFocusSessions, loadNotificationSettings } from '@/lib/storage';
-import { Skill, FocusSession } from '@/lib/types';
+import { Skill, FocusSession, SKILL_CATEGORY_CONFIG } from '@/lib/types';
 
 const PRESETS = [
   { label: '15 min', minutes: 15 },
@@ -482,6 +482,10 @@ export default function FocusPage() {
                   style={{ backgroundColor: skill.color }}
                 />
                 {skill.name}
+                {skill.category && (() => {
+                  const cat = SKILL_CATEGORY_CONFIG.find((c) => c.value === skill.category);
+                  return cat ? <span className="ml-1 opacity-70">{cat.icon}</span> : null;
+                })()}
               </button>
             ))}
           </div>
@@ -706,7 +710,10 @@ export default function FocusPage() {
             ) : (
               <>
                 <div className="max-h-72 overflow-y-auto space-y-2">
-                  {sessionHistory.slice(0, 10).map((session) => (
+                  {sessionHistory.slice(0, 10).map((session) => {
+                    const sessionSkill = skills.find((s) => s.id === session.skillId);
+                    const sessionCat = sessionSkill?.category ? SKILL_CATEGORY_CONFIG.find((c) => c.value === sessionSkill.category) : null;
+                    return (
                     <div
                       key={session.id}
                       className="bg-card border border-card-border rounded-lg px-3 py-2 flex items-center gap-3"
@@ -716,7 +723,14 @@ export default function FocusPage() {
                         style={{ backgroundColor: session.skillColor }}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate">{session.skillName}</p>
+                        <p className="text-sm truncate">
+                          {session.skillName}
+                          {sessionCat && (
+                            <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded border ${sessionCat.color}`}>
+                              {sessionCat.icon} {sessionCat.label}
+                            </span>
+                          )}
+                        </p>
                         <p className="text-xs text-fg-muted">{session.note}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
@@ -724,7 +738,8 @@ export default function FocusPage() {
                         <p className="text-xs text-fg-muted">{relativeTime(session.date)}</p>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <button
                   onClick={handleClearHistory}

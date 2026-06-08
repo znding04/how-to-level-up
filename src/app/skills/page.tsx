@@ -3,7 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
-import { Skill, getSkillLevel } from '@/lib/types';
+import { Skill, SkillCategory, SKILL_CATEGORY_CONFIG, getSkillLevel } from '@/lib/types';
+
+function getSkillCategoryStyle(cat?: SkillCategory): string {
+  const found = SKILL_CATEGORY_CONFIG.find((c) => c.value === cat);
+  return found ? found.color : 'bg-surface text-fg-muted border-card-border';
+}
+
+function getSkillCategoryLabel(cat?: SkillCategory): string {
+  const found = SKILL_CATEGORY_CONFIG.find((c) => c.value === cat);
+  return found ? `${found.icon} ${found.label}` : '';
+}
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<Skill[]>(() => {
@@ -18,6 +28,9 @@ export default function SkillsPage() {
   const [durationError, setDurationError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [newCategory, setNewCategory] = useState<SkillCategory | ''>('');
+  const [editCategory, setEditCategory] = useState<SkillCategory | ''>('');
+  const [filterCategory, setFilterCategory] = useState<SkillCategory | 'all'>('all');
 
   function persist(updated: Skill[]) {
     setSkills(updated);
@@ -36,11 +49,13 @@ export default function SkillsPage() {
       color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][
         Math.floor(Math.random() * 5)
       ],
+      category: newCategory || undefined,
       sessions: [],
       createdAt: todayString(),
     };
     persist([...skills, skill]);
     setNewName('');
+    setNewCategory('');
   }
 
   function deleteSkill(id: string) {
@@ -51,13 +66,14 @@ export default function SkillsPage() {
   function startEditSkill(skill: Skill) {
     setEditingId(skill.id);
     setEditName(skill.name);
+    setEditCategory(skill.category ?? '');
   }
 
   function saveEditSkill(id: string) {
     if (!editName.trim()) return;
     const updated = skills.map((s) => {
       if (s.id !== id) return s;
-      return { ...s, name: editName.trim() };
+      return { ...s, name: editName.trim(), category: editCategory || undefined };
     });
     persist(updated);
     setEditingId(null);
@@ -127,7 +143,7 @@ export default function SkillsPage() {
         </Link>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-2">
         <input
           type="text"
           value={newName}
@@ -136,6 +152,16 @@ export default function SkillsPage() {
           placeholder="New skill..."
           className="flex-1 bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+        <select
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value as SkillCategory | '')}
+          className="bg-input border border-input-border rounded-lg px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">No category</option>
+          {SKILL_CATEGORY_CONFIG.map((c) => (
+            <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
+          ))}
+        </select>
         <button
           onClick={addSkill}
           className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -144,13 +170,40 @@ export default function SkillsPage() {
         </button>
       </div>
 
+      {/* Category filter bar */}
+      <div className="flex gap-1.5 flex-wrap mb-6">
+        <button
+          onClick={() => setFilterCategory('all')}
+          className={`text-xs px-2 py-1 rounded transition-colors ${
+            filterCategory === 'all' ? 'bg-blue-600 text-white' : 'bg-surface text-fg-secondary'
+          }`}
+        >
+          All
+        </button>
+        {SKILL_CATEGORY_CONFIG.map((cat) => (
+          <button
+            key={cat.value}
+            onClick={() => setFilterCategory(cat.value)}
+            className={`text-xs px-2 py-1 rounded border transition-colors ${
+              filterCategory === cat.value ? 'bg-blue-600 text-white border-blue-600' : `${cat.color} border`
+            }`}
+          >
+            {cat.icon} {cat.label}
+          </button>
+        ))}
+      </div>
+
       {skills.length === 0 ? (
         <p className="text-fg-muted text-center mt-12">
           No skills yet. Add one to start tracking!
         </p>
+      ) : skills.filter((s) => filterCategory === 'all' || s.category === filterCategory).length === 0 ? (
+        <p className="text-fg-muted text-center mt-12">
+          No skills match this category filter
+        </p>
       ) : (
         <div className="space-y-3">
-          {skills.map((skill) => (
+          {skills.filter((s) => filterCategory === 'all' || s.category === filterCategory).map((skill) => (
             <div
               key={skill.id}
               className="bg-card border border-card-border rounded-xl p-4"
@@ -162,7 +215,7 @@ export default function SkillsPage() {
                     style={{ backgroundColor: skill.color }}
                   />
                   {editingId === skill.id ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <input
                         type="text"
                         value={editName}
@@ -174,6 +227,16 @@ export default function SkillsPage() {
                         autoFocus
                         className="bg-input border border-input-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
+                      <select
+                        value={editCategory}
+                        onChange={(e) => setEditCategory(e.target.value as SkillCategory | '')}
+                        className="bg-input border border-input-border rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">No category</option>
+                        {SKILL_CATEGORY_CONFIG.map((c) => (
+                          <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
+                        ))}
+                      </select>
                       <button
                         onClick={() => saveEditSkill(skill.id)}
                         className="text-xs bg-green-600 hover:bg-green-500 px-2 py-1 rounded transition-colors"
@@ -188,7 +251,14 @@ export default function SkillsPage() {
                       </button>
                     </div>
                   ) : (
-                    <h3 className="font-medium">{skill.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium">{skill.name}</h3>
+                      {skill.category && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded border ${getSkillCategoryStyle(skill.category)}`}>
+                          {getSkillCategoryLabel(skill.category)}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="flex items-center gap-2">

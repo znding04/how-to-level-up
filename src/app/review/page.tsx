@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { loadData, loadProfileData } from '@/lib/storage';
-import { AppData } from '@/lib/types';
+import { AppData, SkillCategory, SKILL_CATEGORY_CONFIG } from '@/lib/types';
 
 function getWeekRange(weeksAgo: number): { start: Date; end: Date; dates: string[] } {
   const now = new Date();
@@ -39,6 +39,7 @@ export default function ReviewPage() {
     ...loadProfileData(fullData),
   };
   const [weeksAgo, setWeeksAgo] = useState(0);
+  const [skillCategoryFilter, setSkillCategoryFilter] = useState<SkillCategory | 'all'>('all');
 
   const week = getWeekRange(weeksAgo);
   const weekLabel =
@@ -87,11 +88,15 @@ export default function ReviewPage() {
   const energyEmojis = ['', '🪫', '🔋', '⚡', '🔥', '💥'];
 
   // --- Skills ---
-  const weekSkillMinutes = data.skills.map((s) => {
+  const filteredSkills = skillCategoryFilter === 'all'
+    ? data.skills
+    : data.skills.filter((s) => s.category === skillCategoryFilter);
+  const weekSkillMinutes = filteredSkills.map((s) => {
     const mins = s.sessions
       .filter((sess) => week.dates.includes(sess.date))
       .reduce((sum, sess) => sum + sess.durationMinutes, 0);
-    return { name: s.name, color: s.color, minutes: mins };
+    const cat = s.category ? SKILL_CATEGORY_CONFIG.find((c) => c.value === s.category) : null;
+    return { name: s.name, color: s.color, minutes: mins, category: cat };
   });
   const totalMinutes = weekSkillMinutes.reduce((sum, s) => sum + s.minutes, 0);
   const totalHours = (totalMinutes / 60).toFixed(1);
@@ -264,6 +269,28 @@ export default function ReviewPage() {
         <div className="bg-card border border-card-border rounded-xl p-4">
           <h2 className="font-semibold mb-1">Skills Practice</h2>
           <p className="text-xs text-fg-muted mb-3">{sessionCount} sessions this week</p>
+          {/* Category filter */}
+          <div className="flex gap-1.5 flex-wrap mb-3">
+            <button
+              onClick={() => setSkillCategoryFilter('all')}
+              className={`text-xs px-2 py-0.5 rounded transition-colors ${
+                skillCategoryFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-surface text-fg-secondary'
+              }`}
+            >
+              All
+            </button>
+            {SKILL_CATEGORY_CONFIG.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => setSkillCategoryFilter(cat.value)}
+                className={`text-xs px-2 py-0.5 rounded border transition-colors ${
+                  skillCategoryFilter === cat.value ? 'bg-blue-600 text-white border-blue-600' : `${cat.color} border`
+                }`}
+              >
+                {cat.icon} {cat.label}
+              </button>
+            ))}
+          </div>
           {weekSkillMinutes.filter((s) => s.minutes > 0).length === 0 ? (
             <p className="text-sm text-fg-muted">No practice logged this week</p>
           ) : (
@@ -274,7 +301,14 @@ export default function ReviewPage() {
                 .map((s) => (
                   <div key={s.name} className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
-                    <span className="text-sm flex-1 truncate">{s.name}</span>
+                    <span className="text-sm flex-1 truncate">
+                      {s.name}
+                      {s.category && (
+                        <span className={`ml-1.5 text-[10px] px-1 py-0.5 rounded border ${s.category.color}`}>
+                          {s.category.icon}
+                        </span>
+                      )}
+                    </span>
                     <div className="w-24 bg-bar-track rounded-full h-1.5">
                       <div
                         className="h-1.5 rounded-full transition-all"

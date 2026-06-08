@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { loadData, loadProfileData } from '@/lib/storage';
-import { Skill } from '@/lib/types';
+import { Skill, SkillCategory, SKILL_CATEGORY_CONFIG } from '@/lib/types';
 
 const WEEKS = 12;
 const CHART_WEEKS = 8;
@@ -27,10 +27,20 @@ export default function SkillTrendsPage() {
     return loadProfileData(data).skills;
   });
   const [selectedSkillId, setSelectedSkillId] = useState<string>('all');
+  const [filterCategory, setFilterCategory] = useState<SkillCategory | 'all'>('all');
 
   const filteredSkills = useMemo(
-    () => (selectedSkillId === 'all' ? skills : skills.filter((s) => s.id === selectedSkillId)),
-    [skills, selectedSkillId]
+    () => {
+      let result = skills;
+      if (filterCategory !== 'all') {
+        result = result.filter((s) => s.category === filterCategory);
+      }
+      if (selectedSkillId !== 'all') {
+        result = result.filter((s) => s.id === selectedSkillId);
+      }
+      return result;
+    },
+    [skills, selectedSkillId, filterCategory]
   );
 
   // Build heatmap data: 12 weeks x 7 days grid, colored by total practice minutes
@@ -216,7 +226,7 @@ export default function SkillTrendsPage() {
       ) : (
         <>
           {/* Skill filter */}
-          <div className="mb-6">
+          <div className="mb-4">
             <select
               value={selectedSkillId}
               onChange={(e) => setSelectedSkillId(e.target.value)}
@@ -229,6 +239,29 @@ export default function SkillTrendsPage() {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Category filter */}
+          <div className="flex gap-1.5 flex-wrap mb-6">
+            <button
+              onClick={() => setFilterCategory('all')}
+              className={`text-xs px-2 py-1 rounded transition-colors ${
+                filterCategory === 'all' ? 'bg-blue-600 text-white' : 'bg-surface text-fg-secondary'
+              }`}
+            >
+              All
+            </button>
+            {SKILL_CATEGORY_CONFIG.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => setFilterCategory(cat.value)}
+                className={`text-xs px-2 py-1 rounded border transition-colors ${
+                  filterCategory === cat.value ? 'bg-blue-600 text-white border-blue-600' : `${cat.color} border`
+                }`}
+              >
+                {cat.icon} {cat.label}
+              </button>
+            ))}
           </div>
 
           {/* Summary stats */}

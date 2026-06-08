@@ -47,11 +47,23 @@ export interface DailyLog {
   notes: string;
 }
 
+export type SkillCategory = 'health' | 'fitness' | 'learning' | 'work' | 'creative' | 'mindfulness';
+
+export const SKILL_CATEGORY_CONFIG: { value: SkillCategory; label: string; icon: string; color: string }[] = [
+  { value: 'health', label: 'Health', icon: '💪', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  { value: 'fitness', label: 'Fitness', icon: '🏃', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  { value: 'learning', label: 'Learning', icon: '📚', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  { value: 'work', label: 'Work', icon: '💼', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  { value: 'creative', label: 'Creative', icon: '🎨', color: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
+  { value: 'mindfulness', label: 'Mindfulness', icon: '🧘', color: 'bg-pink-500/20 text-pink-400 border-pink-500/30' },
+];
+
 export interface Skill {
   id: string;
   profileId: string;
   name: string;
   color: string;
+  category?: SkillCategory;
   sessions: SkillSession[];
   createdAt: string;
 }

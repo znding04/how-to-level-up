@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { loadData, saveData, loadProfileData, todayString, generateId } from '@/lib/storage';
 import { recordHabitCompletion } from '@/lib/reminders';
+import { SKILL_CATEGORY_CONFIG, SkillCategory } from '@/lib/types';
 
 export default function QuickAddFAB() {
   const pathname = usePathname();
@@ -20,7 +21,7 @@ export default function QuickAddFAB() {
   const [checkinSuccess, setCheckinSuccess] = useState(false);
 
   // Skill session state
-  const [skills, setSkills] = useState<{ id: string; name: string }[]>([]);
+  const [skills, setSkills] = useState<{ id: string; name: string; category?: SkillCategory }[]>([]);
   const [selectedSkill, setSelectedSkill] = useState('');
   const [sessionMinutes, setSessionMinutes] = useState(30);
   const [skillSuccess, setSkillSuccess] = useState(false);
@@ -67,7 +68,7 @@ export default function QuickAddFAB() {
     }
 
     if (panel === 'skill') {
-      setSkills(pd.skills.map((s) => ({ id: s.id, name: s.name })));
+      setSkills(pd.skills.map((s) => ({ id: s.id, name: s.name, category: s.category })));
       setSelectedSkill(pd.skills[0]?.id ?? '');
       setSessionMinutes(30);
       setSkillSuccess(false);
@@ -267,11 +268,14 @@ export default function QuickAddFAB() {
                       onChange={(e) => setSelectedSkill(e.target.value)}
                       className="w-full bg-input border border-input-border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      {skills.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
+                      {skills.map((s) => {
+                        const cat = s.category ? SKILL_CATEGORY_CONFIG.find((c) => c.value === s.category) : null;
+                        return (
+                          <option key={s.id} value={s.id}>
+                            {cat ? `${cat.icon} ` : ''}{s.name}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                   <div>
