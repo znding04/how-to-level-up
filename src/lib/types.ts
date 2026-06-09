@@ -111,6 +111,8 @@ export interface FocusSession {
   date: string;
   durationMinutes: number;
   note: string;
+  rating?: number; // 1-5
+  sessionNote?: string;
 }
 
 export interface Achievement {

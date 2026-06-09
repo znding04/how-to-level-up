@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { loadData, saveData, loadProfileData, generateId, todayString, loadFocusSessions, saveFocusSession, clearFocusSessions, loadNotificationSettings } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, generateId, todayString, loadFocusSessions, saveFocusSession, updateFocusSession, clearFocusSessions, loadNotificationSettings } from '@/lib/storage';
 import { Skill, FocusSession, SKILL_CATEGORY_CONFIG } from '@/lib/types';
 
 const PRESETS = [
@@ -101,6 +101,13 @@ export default function FocusPage() {
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
 
+  // Session review state
+  const [reviewingSessionId, setReviewingSessionId] = useState<string | null>(null);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewHoverRating, setReviewHoverRating] = useState(0);
+  const [reviewNote, setReviewNote] = useState('');
+  const [reviewSaved, setReviewSaved] = useState(false);
+
   const [workDuration, setWorkDuration] = useState(25 * 60);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -181,8 +188,9 @@ export default function FocusPage() {
           saveData({ ...data, skills: [...otherSkills, ...updated] });
 
           // Save to focus session history
+          const sessionId = generateId();
           const focusSession: FocusSession = {
-            id: generateId(),
+            id: sessionId,
             skillId: skill.id,
             skillName: skill.name,
             skillColor: skill.color,
@@ -192,6 +200,15 @@ export default function FocusPage() {
           };
           saveFocusSession(focusSession);
           setSessionHistory(loadFocusSessions());
+
+          // Show review panel (non-pomodoro only)
+          if (!pomodoroEnabled) {
+            setReviewingSessionId(sessionId);
+            setReviewRating(0);
+            setReviewHoverRating(0);
+            setReviewNote('');
+            setReviewSaved(false);
+          }
         }
 
         setSessionsCompleted((n) => n + 1);
@@ -293,6 +310,24 @@ export default function FocusPage() {
     clearFocusSessions();
     setSessionHistory([]);
     setConfirmClear(false);
+  }
+
+  function saveReview() {
+    if (!reviewingSessionId) return;
+    const updates: Partial<FocusSession> = {};
+    if (reviewRating > 0) updates.rating = reviewRating;
+    if (reviewNote.trim()) updates.sessionNote = reviewNote.trim().slice(0, 280);
+    updateFocusSession(reviewingSessionId, updates);
+    setSessionHistory(loadFocusSessions());
+    setReviewSaved(true);
+    setTimeout(() => {
+      setReviewingSessionId(null);
+      setReviewSaved(false);
+    }, 1000);
+  }
+
+  function dismissReview() {
+    setReviewingSessionId(null);
   }
 
   function formatTime(secs: number): string {
@@ -693,6 +728,69 @@ export default function FocusPage() {
         </div>
       )}
 
+      {/* Session Review Panel */}
+      {reviewingSessionId && (
+        <div className="bg-card border border-card-border rounded-xl p-4 mt-4">
+          {reviewSaved ? (
+            <div className="text-center py-2">
+              <p className="text-green-400 font-medium">Session saved!</p>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-sm font-semibold mb-3">Rate Your Session</h2>
+              {/* Star Rating */}
+              <div className="flex items-center gap-1 mb-3">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setReviewRating(star)}
+                    onMouseEnter={() => setReviewHoverRating(star)}
+                    onMouseLeave={() => setReviewHoverRating(0)}
+                    className="text-2xl transition-transform hover:scale-110"
+                  >
+                    <span className={
+                      (reviewHoverRating || reviewRating) >= star
+                        ? 'text-amber-400'
+                        : 'text-gray-600'
+                    }>
+                      {(reviewHoverRating || reviewRating) >= star ? '\u2605' : '\u2606'}
+                    </span>
+                  </button>
+                ))}
+                {reviewRating > 0 && (
+                  <span className="text-xs text-fg-muted ml-2">{reviewRating}/5</span>
+                )}
+              </div>
+              {/* Notes */}
+              <textarea
+                value={reviewNote}
+                onChange={(e) => setReviewNote(e.target.value.slice(0, 280))}
+                placeholder="What did you work on?"
+                rows={2}
+                className="w-full bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-2"
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-fg-muted">{reviewNote.length}/280</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={dismissReview}
+                    className="text-xs px-3 py-1.5 bg-surface hover:bg-surface-hover border border-card-border rounded-lg transition-colors"
+                  >
+                    Skip
+                  </button>
+                  <button
+                    onClick={saveReview}
+                    className="text-xs px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Save &amp; Close
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Session History */}
       <div className="mt-6">
         <button
@@ -730,8 +828,18 @@ export default function FocusPage() {
                               {sessionCat.icon} {sessionCat.label}
                             </span>
                           )}
+                          {session.rating && (
+                            <span className="ml-1.5 text-amber-400 text-xs">
+                              {'\u2605'.repeat(session.rating)}
+                              <span className="text-gray-600">{'\u2606'.repeat(5 - session.rating)}</span>
+                            </span>
+                          )}
                         </p>
-                        <p className="text-xs text-fg-muted">{session.note}</p>
+                        {session.sessionNote ? (
+                          <p className="text-xs text-fg-muted truncate">{session.sessionNote}</p>
+                        ) : (
+                          <p className="text-xs text-fg-muted">{session.note}</p>
+                        )}
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="text-xs text-fg-secondary">{session.durationMinutes} min</p>

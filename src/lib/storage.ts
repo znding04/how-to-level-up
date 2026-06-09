@@ -221,6 +221,15 @@ export function saveFocusSession(session: FocusSession): void {
   localStorage.setItem(FOCUS_SESSIONS_KEY, JSON.stringify(sessions));
 }
 
+export function updateFocusSession(id: string, updates: Partial<FocusSession>): void {
+  if (typeof window === 'undefined') return;
+  const sessions = loadFocusSessions();
+  const idx = sessions.findIndex((s) => s.id === id);
+  if (idx === -1) return;
+  sessions[idx] = { ...sessions[idx], ...updates };
+  localStorage.setItem(FOCUS_SESSIONS_KEY, JSON.stringify(sessions));
+}
+
 export function clearFocusSessions(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(FOCUS_SESSIONS_KEY);

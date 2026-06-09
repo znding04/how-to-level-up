@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { loadData, loadProfileData } from '@/lib/storage';
-import { Skill, SkillCategory, SKILL_CATEGORY_CONFIG } from '@/lib/types';
+import { loadData, loadProfileData, loadFocusSessions } from '@/lib/storage';
+import { Skill, SkillCategory, SKILL_CATEGORY_CONFIG, FocusSession } from '@/lib/types';
 
 const WEEKS = 12;
 const CHART_WEEKS = 8;
@@ -25,6 +25,10 @@ export default function SkillTrendsPage() {
     if (typeof window === 'undefined') return [];
     const data = loadData();
     return loadProfileData(data).skills;
+  });
+  const [focusSessions] = useState<FocusSession[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return loadFocusSessions();
   });
   const [selectedSkillId, setSelectedSkillId] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<SkillCategory | 'all'>('all');
@@ -123,6 +127,8 @@ export default function SkillTrendsPage() {
   const skillStats = useMemo(() => {
     const today = new Date();
     const last30Dates = new Set<string>();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     for (let i = 0; i < 30; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
@@ -136,7 +142,16 @@ export default function SkillTrendsPage() {
           minutes += session.durationMinutes;
         }
       }
-      return { skill, minutes };
+
+      // Average rating from focus sessions for this skill in last 30 days
+      const ratedSessions = focusSessions.filter(
+        (fs) => fs.skillId === skill.id && fs.rating && new Date(fs.date) >= thirtyDaysAgo
+      );
+      const avgRating = ratedSessions.length > 0
+        ? ratedSessions.reduce((sum, fs) => sum + (fs.rating ?? 0), 0) / ratedSessions.length
+        : null;
+
+      return { skill, minutes, avgRating, ratedCount: ratedSessions.length };
     });
 
     const totalAll = stats.reduce((sum, s) => sum + s.minutes, 0);
@@ -147,7 +162,7 @@ export default function SkillTrendsPage() {
         percentage: totalAll > 0 ? Math.round((s.minutes / totalAll) * 100) : 0,
       }))
       .sort((a, b) => b.minutes - a.minutes);
-  }, [skills]);
+  }, [skills, focusSessions]);
 
   // Summary stats
   const summaryStats = useMemo(() => {
@@ -349,7 +364,7 @@ export default function SkillTrendsPage() {
               30-Day Breakdown
             </h2>
             <div className="space-y-3">
-              {skillStats.map(({ skill, minutes, percentage }) => (
+              {skillStats.map(({ skill, minutes, percentage, avgRating, ratedCount }) => (
                 <div key={skill.id} className="flex items-center gap-3">
                   <div
                     className="w-3 h-3 rounded-full shrink-0"
@@ -357,7 +372,15 @@ export default function SkillTrendsPage() {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm truncate">{skill.name}</span>
+                      <span className="text-sm truncate">
+                        {skill.name}
+                        {avgRating !== null && (
+                          <span className="ml-2 text-xs text-amber-400" title={`${avgRating.toFixed(1)}/5 from ${ratedCount} session${ratedCount !== 1 ? 's' : ''}`}>
+                            {'\u2605'.repeat(Math.round(avgRating))}
+                            <span className="text-gray-600">{'\u2606'.repeat(5 - Math.round(avgRating))}</span>
+                          </span>
+                        )}
+                      </span>
                       <span className="text-xs text-gray-400 ml-2 shrink-0">
                         {minutes}min ({percentage}%)
                       </span>

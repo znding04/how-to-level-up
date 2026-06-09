@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData, loadProfileData } from '@/lib/storage';
-import { AppData, Habit, Achievement } from '@/lib/types';
+import { loadData, loadProfileData, loadFocusSessions } from '@/lib/storage';
+import { AppData, Habit, Achievement, FocusSession } from '@/lib/types';
 
 function getWeekDates(weeksAgo: number): string[] {
   const now = new Date();
@@ -35,6 +35,11 @@ function getHabitCompletionRate(habit: Habit, dates: string[]): number {
 export default function InsightsPage() {
   const [fullData] = useState<AppData>(() => loadData());
   const profileData = loadProfileData(fullData);
+
+  const [focusSessions] = useState<FocusSession[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return loadFocusSessions();
+  });
 
   const thisWeekDates = getWeekDates(0);
   const lastWeekDates = getWeekDates(1);
@@ -114,6 +119,21 @@ export default function InsightsPage() {
     : 0;
   const deltaRate = Math.round((thisWeekRate - lastWeekRate) * 100);
 
+  // Focus Quality
+  const weekStart = new Date(thisWeekDates[0] + 'T00:00:00');
+  const weekEnd = new Date(thisWeekDates[6] + 'T23:59:59');
+  const weekFocusSessions = focusSessions.filter((fs) => {
+    const d = new Date(fs.date);
+    return d >= weekStart && d <= weekEnd;
+  });
+  const ratedWeekSessions = weekFocusSessions.filter((fs) => fs.rating);
+  const avgFocusRating = ratedWeekSessions.length > 0
+    ? ratedWeekSessions.reduce((sum, fs) => sum + (fs.rating ?? 0), 0) / ratedWeekSessions.length
+    : null;
+  const bestRatedSession = ratedWeekSessions.length > 0
+    ? ratedWeekSessions.reduce((best, fs) => (fs.rating ?? 0) > (best.rating ?? 0) ? fs : best, ratedWeekSessions[0])
+    : null;
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Weekly Insights</h1>
@@ -190,6 +210,44 @@ export default function InsightsPage() {
                 ? `${(topSkill.minutes / 60).toFixed(1)}h`
                 : `${topSkill.minutes}m`}
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* Focus Quality */}
+      {weekFocusSessions.length > 0 && (
+        <div className="bg-card border border-card-border rounded-xl p-4">
+          <h2 className="text-lg font-semibold mb-3">Focus Quality</h2>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-fg-secondary">Sessions this week</span>
+              <span className="text-sm font-medium">{weekFocusSessions.length}</span>
+            </div>
+            {avgFocusRating !== null && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-fg-secondary">Avg rating</span>
+                <span className="text-sm font-medium">
+                  <span className="text-amber-400">
+                    {'\u2605'.repeat(Math.round(avgFocusRating))}
+                    <span className="text-gray-600">{'\u2606'.repeat(5 - Math.round(avgFocusRating))}</span>
+                  </span>
+                  <span className="ml-1 text-fg-muted text-xs">{avgFocusRating.toFixed(1)}</span>
+                </span>
+              </div>
+            )}
+            {bestRatedSession && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-fg-secondary">Best session</span>
+                <span className="text-sm font-medium">
+                  <span
+                    className="inline-block w-2 h-2 rounded-full mr-1"
+                    style={{ backgroundColor: bestRatedSession.skillColor }}
+                  />
+                  {bestRatedSession.skillName}
+                  <span className="ml-1 text-amber-400">{'\u2605'.repeat(bestRatedSession.rating ?? 0)}</span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
