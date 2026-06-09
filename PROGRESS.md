@@ -1,5 +1,16 @@
 # 变强 — Progress Log
 
+## 2026-06-09
+### Added: Focus Session Review/Rating System
+- **Rating field** (`src/lib/types.ts`): `FocusSession.rating?: number` (1-5) added to type
+- **Session note field** (`src/lib/types.ts`): `FocusSession.sessionNote?: string` for post-session reflection
+- **updateFocusSession()** (`src/lib/storage.ts`): New helper to update session fields by ID
+- **Session Review Panel** (`src/app/focus/page.tsx`): After non-pomodoro timer completes, a review panel appears with 5-star rating selector (hover preview), optional notes textarea (280 chars max), "Save & Close" and "Skip" buttons; session auto-saved on completion, updated with rating/note on save
+- **Session History**: Each session now shows amber star rating and truncated note preview (if available)
+- **Skills Trends** (`src/app/skills/trends/page.tsx`): 30-day breakdown shows average rating per skill as amber stars with tooltip
+- **Insights** (`src/app/insights/page.tsx`): New "Focus Quality" card showing total sessions, average rating, and best rated session
+- `npm run lint` — 0 errors, `npm run build` — 19 static pages
+
 ## 2026-06-08
 ### Added: Skill Categories System
 - **SkillCategory type** (`src/lib/types.ts`): `SkillCategory = 'health' | 'fitness' | 'learning' | 'work' | 'creative' | 'mindfulness'` with `SKILL_CATEGORY_CONFIG` constant (6 categories with colors and emoji icons matching habit categories pattern)
