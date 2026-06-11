@@ -8,6 +8,7 @@ import InstallPrompt from "@/components/InstallPrompt";
 import NotificationService from "@/components/NotificationService";
 import SmartNotificationService from "@/components/SmartNotificationService";
 import QuickAddFAB from "@/components/QuickAddFAB";
+import CommandPalette from "@/components/CommandPalette";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,6 +50,7 @@ export default function RootLayout({
             {children}
           </main>
           <QuickAddFAB />
+          <CommandPalette />
           <TabNav />
         </ThemeProvider>
       </body>

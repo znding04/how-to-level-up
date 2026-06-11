@@ -32,6 +32,85 @@ function getHabitCompletionRate(habit: Habit, dates: string[]): number {
   return completions / scheduledDates.length;
 }
 
+// Calculate current streak for a habit
+function getHabitStreak(habit: Habit): number {
+  const today = new Date();
+  let streak = 0;
+  const currentDate = new Date(today);
+  
+  // Check if today is a scheduled day and if not completed, start checking from yesterday
+  const scheduled = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
+  const todayStr = today.toISOString().split('T')[0];
+  const todayDay = today.getDay();
+  
+  // If today is scheduled but not completed, start from yesterday
+  if (scheduled.includes(todayDay) && !habit.completions[todayStr]) {
+    currentDate.setDate(currentDate.getDate() - 1);
+  }
+  
+  // Count backwards through scheduled days
+  for (let i = 0; i < 365; i++) {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    const dayOfWeek = currentDate.getDay();
+    
+    if (scheduled.includes(dayOfWeek)) {
+      if (habit.completions[dateStr]) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    currentDate.setDate(currentDate.getDate() - 1);
+  }
+  
+  return streak;
+}
+
+// Get longest streak ever for a habit (simplified calculation)
+function getLongestStreak(habit: Habit): number {
+  let longest = 0;
+  let current = 0;
+  const scheduled = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
+  
+  // Get all completion dates sorted
+  const completionDates = Object.keys(habit.completions).sort();
+  
+  for (let i = 0; i < completionDates.length; i++) {
+    const date = new Date(completionDates[i] + 'T00:00:00');
+    const dayOfWeek = date.getDay();
+    
+    if (!scheduled.includes(dayOfWeek)) continue;
+    
+    if (i === 0) {
+      current = 1;
+    } else {
+      const prevDate = new Date(completionDates[i - 1] + 'T00:00:00');
+      const diffDays = Math.round((date.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Check if consecutive scheduled days
+      let expectedDiff = 1;
+      const checkDate = new Date(prevDate);
+      while (checkDate < date) {
+        checkDate.setDate(checkDate.getDate() + 1);
+        const dow = checkDate.getDay();
+        if (scheduled.includes(dow) && checkDate < date) {
+          expectedDiff++;
+        }
+      }
+      
+      if (diffDays === expectedDiff) {
+        current++;
+      } else {
+        current = 1;
+      }
+    }
+    
+    longest = Math.max(longest, current);
+  }
+  
+  return longest;
+}
+
 export default function InsightsPage() {
   const [fullData] = useState<AppData>(() => loadData());
   const profileData = loadProfileData(fullData);
@@ -119,6 +198,96 @@ export default function InsightsPage() {
     : 0;
   const deltaRate = Math.round((thisWeekRate - lastWeekRate) * 100);
 
+  // 9. Habit Trend Analysis (up/down trending)
+  const habitTrends = dailyHabits.map((h) => {
+    const thisRate = getHabitCompletionRate(h, thisWeekDates);
+    const lastRate = getHabitCompletionRate(h, lastWeekDates);
+    const delta = thisRate - lastRate;
+    return {
+      name: h.name,
+      color: h.color,
+      thisRate,
+      lastRate,
+      delta,
+      trend: delta > 0.1 ? 'up' : delta < -0.1 ? 'down' : 'stable',
+    };
+  }).sort((a, b) => b.delta - a.delta);
+  
+  const trendingUp = habitTrends.filter((h) => h.trend === 'up');
+  const trendingDown = habitTrends.filter((h) => h.trend === 'down');
+
+  // 10. Skill-Mood Correlation
+  // Calculate correlation between skill minutes and mood/energy
+  const skillMoodCorrelation = (() => {
+    if (profileData.skills.length === 0 || profileData.dailyLogs.length === 0) return null;
+    
+    // Get skill minutes per day
+    const skillMinutesByDate: Record<string, number> = {};
+    profileData.skills.forEach((skill) => {
+      skill.sessions.forEach((sess) => {
+        if (!skillMinutesByDate[sess.date]) skillMinutesByDate[sess.date] = 0;
+        skillMinutesByDate[sess.date] += sess.durationMinutes;
+      });
+    });
+    
+    // Get mood by date
+    const moodByDate: Record<string, number> = {};
+    profileData.dailyLogs.forEach((log) => {
+      moodByDate[log.date] = log.mood;
+    });
+    
+    // Find common dates
+    const commonDates = Object.keys(skillMinutesByDate).filter(
+      (date) => moodByDate[date] !== undefined
+    );
+    
+    if (commonDates.length < 3) return null;
+    
+    // Calculate simple correlation coefficient
+    const n = commonDates.length;
+    const sumX = commonDates.reduce((s, d) => s + skillMinutesByDate[d], 0);
+    const sumY = commonDates.reduce((s, d) => s + moodByDate[d], 0);
+    const sumXY = commonDates.reduce((s, d) => s + skillMinutesByDate[d] * moodByDate[d], 0);
+    const sumX2 = commonDates.reduce((s, d) => s + skillMinutesByDate[d] ** 2, 0);
+    const sumY2 = commonDates.reduce((s, d) => s + moodByDate[d] ** 2, 0);
+    
+    const numerator = n * sumXY - sumX * sumY;
+    const denominator = Math.sqrt((n * sumX2 - sumX ** 2) * (n * sumY2 - sumY ** 2));
+    
+    if (denominator === 0) return null;
+    
+    return numerator / denominator;
+  })();
+
+  // 11. Weekly Highlight - Big Win & Watch Out
+  const bigWin = trendingUp.length > 0 ? trendingUp[0] : null;
+  const watchOut = trendingDown.length > 0 ? trendingDown[0] : null;
+
+  // 12. Streak Insights
+  const habitStreaks = dailyHabits.map((h) => ({
+    name: h.name,
+    color: h.color,
+    currentStreak: getHabitStreak(h),
+    longestStreak: getLongestStreak(h),
+  }));
+  
+  const longestStreakHabit = habitStreaks.length > 0
+    ? habitStreaks.reduce((best, h) => h.longestStreak > best.longestStreak ? h : best, habitStreaks[0])
+    : null;
+  
+  // At-risk habits: scheduled today but not yet completed (or low this week rate)
+  const todayStr = new Date().toISOString().split('T')[0];
+  const atRiskHabits = dailyHabits.filter((h) => {
+    const thisRate = getHabitCompletionRate(h, thisWeekDates);
+    const todayScheduled = (h.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6]).includes(new Date().getDay());
+    const notDoneToday = todayScheduled && !h.completions[todayStr];
+    return notDoneToday || thisRate < 0.5;
+  }).map((h) => ({
+    name: h.name,
+    color: h.color,
+    rate: getHabitCompletionRate(h, thisWeekDates),
+  }));
+
   // Focus Quality
   const weekStart = new Date(thisWeekDates[0] + 'T00:00:00');
   const weekEnd = new Date(thisWeekDates[6] + 'T23:59:59');
@@ -161,6 +330,145 @@ export default function InsightsPage() {
           </div>
         </div>
       </div>
+
+      {/* Weekly Highlight - Big Win & Watch Out */}
+      {(bigWin || watchOut) && (
+        <div className="bg-card border border-card-border rounded-xl p-4">
+          <h2 className="text-lg font-semibold mb-3">Weekly Highlights</h2>
+          <div className="space-y-3">
+            {bigWin && (
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-green-400/10 border border-green-400/20">
+                <span className="text-2xl">🏆</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-green-400">Big Win</p>
+                  <p className="text-sm font-medium truncate">{bigWin.name}</p>
+                  <p className="text-xs text-fg-secondary">
+                    Up {Math.round(bigWin.delta * 100)}% vs last week ({Math.round(bigWin.thisRate * 100)}%)
+                  </p>
+                </div>
+              </div>
+            )}
+            {watchOut && (
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-400/10 border border-amber-400/20">
+                <span className="text-2xl">⚠️</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-amber-400">Watch Out</p>
+                  <p className="text-sm font-medium truncate">{watchOut.name}</p>
+                  <p className="text-xs text-fg-secondary">
+                    Down {Math.round(Math.abs(watchOut.delta) * 100)}% vs last week ({Math.round(watchOut.thisRate * 100)}%)
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Habit Trend Analysis */}
+      {habitTrends.length > 0 && (
+        <div className="bg-card border border-card-border rounded-xl p-4">
+          <h2 className="text-lg font-semibold mb-3">Habit Trends</h2>
+          <div className="space-y-2">
+            {trendingUp.length > 0 && (
+              <div className="mb-3">
+                <p className="text-xs text-green-400 font-medium mb-1">Trending Up ↑</p>
+                <div className="space-y-1">
+                  {trendingUp.slice(0, 3).map((h) => (
+                    <div key={h.name} className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: h.color }} />
+                      <span className="text-sm flex-1 truncate">{h.name}</span>
+                      <span className="text-xs text-green-400">+{Math.round(h.delta * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {trendingDown.length > 0 && (
+              <div>
+                <p className="text-xs text-red-400 font-medium mb-1">Trending Down ↓</p>
+                <div className="space-y-1">
+                  {trendingDown.slice(0, 3).map((h) => (
+                    <div key={h.name} className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: h.color }} />
+                      <span className="text-sm flex-1 truncate">{h.name}</span>
+                      <span className="text-xs text-red-400">{Math.round(h.delta * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {trendingUp.length === 0 && trendingDown.length === 0 && (
+              <p className="text-sm text-fg-muted">No significant trend changes this week.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Skill-Mood Correlation Card */}
+      {skillMoodCorrelation !== null && (
+        <div className="bg-card border border-card-border rounded-xl p-4">
+          <h2 className="text-lg font-semibold mb-2">Skill-Mood Connection</h2>
+          <div className="flex items-center gap-4">
+            <div className={`text-3xl ${skillMoodCorrelation > 0.3 ? 'text-green-400' : skillMoodCorrelation < -0.3 ? 'text-red-400' : 'text-fg-muted'}`}>
+              {skillMoodCorrelation > 0.3 ? '📈' : skillMoodCorrelation < -0.3 ? '📉' : '➡️'}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm">
+                {skillMoodCorrelation > 0.3
+                  ? 'Your skill practice seems to lift your mood!'
+                  : skillMoodCorrelation < -0.3
+                  ? 'Notice: Your mood dips when you practice more skills.'
+                  : 'No strong link between skill practice and mood yet.'}
+              </p>
+              <p className="text-xs text-fg-muted mt-1">
+                Correlation: <span className="font-medium">{skillMoodCorrelation > 0 ? '+' : ''}{skillMoodCorrelation.toFixed(2)}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Streak Insights */}
+      {habitStreaks.length > 0 && (
+        <div className="bg-card border border-card-border rounded-xl p-4">
+          <h2 className="text-lg font-semibold mb-3">Streak Insights</h2>
+          <div className="space-y-3">
+            {longestStreakHabit && longestStreakHabit.longestStreak > 0 && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-400/10 border border-purple-400/20">
+                <span className="text-2xl">🔥</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">Longest Streak</p>
+                  <p className="text-sm font-medium truncate">{longestStreakHabit.name}</p>
+                  <p className="text-xs text-fg-secondary">
+                    {longestStreakHabit.longestStreak} day{longestStreakHabit.longestStreak !== 1 ? 's' : ''} best run
+                  </p>
+                </div>
+              </div>
+            )}
+            {atRiskHabits.length > 0 && (
+              <div>
+                <p className="text-xs text-amber-400 font-medium mb-2">⚠️ Needs Attention</p>
+                <div className="space-y-1">
+                  {atRiskHabits.slice(0, 3).map((h) => (
+                    <div key={h.name} className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: h.color }} />
+                      <span className="text-sm flex-1 truncate">{h.name}</span>
+                      <span className="text-xs text-amber-400">{Math.round(h.rate * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {habitStreaks.filter((h) => h.currentStreak > 0).length > 0 && (
+              <div className="pt-2 border-t border-card-border">
+                <p className="text-xs text-fg-secondary">
+                  Current streaks: {habitStreaks.filter((h) => h.currentStreak > 0).map((h) => `${h.name} (${h.currentStreak})`).join(', ') || 'none'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Habit Leaderboard */}
       {top3.length > 0 && (
