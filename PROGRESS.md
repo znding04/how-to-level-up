@@ -1,5 +1,13 @@
 # 变强 — Progress Log
 
+## 2026-06-11
+### Fixed: CommandPalette Build Failure + Lint Warnings
+- **Duplicate `useState`** (`src/components/CommandPalette.tsx`): Line 19-20 had `const [open, setOpen] = useState(false)` declared twice — removed the duplicate causing the build to fail
+- **Unused `idx` variable** (same file): Removed unused `idx` parameter from `.map((cmd, idx) => {...})` — ESLint `@typescript-eslint/no-unused-vars`
+- **Missing `setOpen` deps**: Added `setOpen` to `useEffect` and `useCallback` deps arrays — ESLint `react-hooks/exhaustive-deps`
+- `npm run lint` — 0 errors, 0 warnings (was 3 warnings)
+- `npm run build` — 19 static pages, clean compile
+
 ## 2026-06-09
 ### Added: Focus Session Review/Rating System
 - **Rating field** (`src/lib/types.ts`): `FocusSession.rating?: number` (1-5) added to type
