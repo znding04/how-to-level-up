@@ -7,6 +7,7 @@ import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
 import { recordHabitCompletion } from '@/lib/reminders';
 import OnboardingModal from '@/components/OnboardingModal';
+import IntentionSetter from '@/components/IntentionSetter';
 import Link from 'next/link';
 
 function getGreeting(): string {
@@ -248,6 +249,9 @@ export default function DashboardPage() {
           )}
         </p>
       </div>
+
+      {/* Daily Intention */}
+      <IntentionSetter />
 
       {/* Streak / Motivation */}
       {streak > 0 && (

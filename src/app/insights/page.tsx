@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData, loadProfileData, loadFocusSessions } from '@/lib/storage';
-import { AppData, Habit, Achievement, FocusSession } from '@/lib/types';
+import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions } from '@/lib/storage';
+import { AppData, Habit, Achievement, DailyIntention, FocusSession } from '@/lib/types';
 
 function getWeekDates(weeksAgo: number): string[] {
   const now = new Date();
@@ -118,6 +118,11 @@ export default function InsightsPage() {
   const [focusSessions] = useState<FocusSession[]>(() => {
     if (typeof window === 'undefined') return [];
     return loadFocusSessions();
+  });
+
+  const [allIntentions] = useState<Record<string, DailyIntention>>(() => {
+    if (typeof window === 'undefined') return {};
+    return loadAllDailyIntentions();
   });
 
   const thisWeekDates = getWeekDates(0);
@@ -302,6 +307,25 @@ export default function InsightsPage() {
   const bestRatedSession = ratedWeekSessions.length > 0
     ? ratedWeekSessions.reduce((best, fs) => (fs.rating ?? 0) > (best.rating ?? 0) ? fs : best, ratedWeekSessions[0])
     : null;
+
+  // Daily Intentions insights
+  const intentionDaysThisWeek = thisWeekDates.filter((d) => allIntentions[d]).length;
+  const sortedIntentionDates = Object.keys(allIntentions).sort().reverse();
+  const mostRecentIntention = sortedIntentionDates.length > 0 ? allIntentions[sortedIntentionDates[0]] : null;
+  const intentionStreak = (() => {
+    let streak = 0;
+    const d = new Date();
+    for (let i = 0; i < 365; i++) {
+      const dateStr = d.toISOString().split('T')[0];
+      if (allIntentions[dateStr]) {
+        streak++;
+      } else {
+        break;
+      }
+      d.setDate(d.getDate() - 1);
+    }
+    return streak;
+  })();
 
   return (
     <div className="space-y-4">
@@ -554,6 +578,34 @@ export default function InsightsPage() {
                   {bestRatedSession.skillName}
                   <span className="ml-1 text-amber-400">{'\u2605'.repeat(bestRatedSession.rating ?? 0)}</span>
                 </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Daily Intentions */}
+      {(intentionDaysThisWeek > 0 || mostRecentIntention) && (
+        <div className="bg-card border border-card-border rounded-xl p-4">
+          <h2 className="text-lg font-semibold mb-3">Daily Intentions</h2>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-fg-secondary">This week</span>
+              <span className="text-sm font-medium">{intentionDaysThisWeek}/7 days</span>
+            </div>
+            {intentionStreak > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-fg-secondary">Streak</span>
+                <span className="text-sm font-medium">{intentionStreak} day{intentionStreak !== 1 ? 's' : ''}</span>
+              </div>
+            )}
+            {mostRecentIntention && (
+              <div className="mt-2 pt-2 border-t border-card-border">
+                <p className="text-xs text-fg-muted mb-1">Most recent</p>
+                <p className="text-sm text-foreground">
+                  {mostRecentIntention.emoji && <span className="mr-1">{mostRecentIntention.emoji}</span>}
+                  {mostRecentIntention.text}
+                </p>
               </div>
             )}
           </div>

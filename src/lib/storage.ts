@@ -1,4 +1,4 @@
-import { AppData, FocusSession, NotificationSettings, Profile, WeeklyPlan } from './types';
+import { AppData, DailyIntention, FocusSession, NotificationSettings, Profile, WeeklyPlan } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -320,4 +320,37 @@ export function saveWeeklyPlan(profileId: string, weekKey: string, plan: WeeklyP
   if (!data.weeklyPlans[profileId]) data.weeklyPlans[profileId] = {};
   data.weeklyPlans[profileId][weekKey] = plan;
   saveData(data);
+}
+
+// --- Daily Intentions ---
+
+export function loadDailyIntention(date: string): DailyIntention | null {
+  const data = loadData();
+  const profileId = data.activeProfileId;
+  return data.dailyIntentions?.[profileId]?.[date] ?? null;
+}
+
+export function saveDailyIntention(intention: DailyIntention): void {
+  const data = loadData();
+  const profileId = data.activeProfileId;
+  const date = intention.createdAt.split('T')[0];
+  if (!data.dailyIntentions) data.dailyIntentions = {};
+  if (!data.dailyIntentions[profileId]) data.dailyIntentions[profileId] = {};
+  data.dailyIntentions[profileId][date] = intention;
+  saveData(data);
+}
+
+export function clearDailyIntention(date: string): void {
+  const data = loadData();
+  const profileId = data.activeProfileId;
+  if (data.dailyIntentions?.[profileId]?.[date]) {
+    delete data.dailyIntentions[profileId][date];
+    saveData(data);
+  }
+}
+
+export function loadAllDailyIntentions(): Record<string, DailyIntention> {
+  const data = loadData();
+  const profileId = data.activeProfileId;
+  return data.dailyIntentions?.[profileId] ?? {};
 }

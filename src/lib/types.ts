@@ -132,6 +132,13 @@ export interface NotificationSettings {
   focusSoundMuted: boolean;
 }
 
+export interface DailyIntention {
+  text: string;        // max 120 chars
+  emoji?: string;      // optional emoji
+  createdAt: string;   // ISO date string
+  label?: string;      // custom label like "Today's Focus" or "Daily Theme" (optional, max 30 chars)
+}
+
 export interface WeeklyPlan {
   intention: string;
   priorities: string[];
@@ -150,4 +157,5 @@ export interface AppData {
   onboardingCompleted?: Record<string, boolean>;
   habitNotes?: Record<string, Record<string, string>>; // habitId -> date -> note
   weeklyPlans?: Record<string, Record<string, WeeklyPlan>>; // profileId -> weekKey -> plan
+  dailyIntentions?: Record<string, Record<string, DailyIntention>>; // profileId -> YYYY-MM-DD -> intention
 }
