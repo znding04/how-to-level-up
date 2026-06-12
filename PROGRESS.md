@@ -1,5 +1,14 @@
 # 变强 — Progress Log
 
+## 2026-06-12
+### Added: Daily Morning Intention System
+- **DailyIntention type** (`src/lib/types.ts`): `{ text: string (max 120), emoji?: string, createdAt: string, label?: string (max 30) }` interface with `dailyIntentions` field on `AppData`
+- **Storage helpers** (`src/lib/storage.ts`): `loadDailyIntention()`, `saveDailyIntention()`, `clearDailyIntention()`, `loadAllDailyIntentions()` — keyed by YYYY-MM-DD per profile
+- **IntentionSetter component** (`src/components/IntentionSetter.tsx`): Compact card with inline edit form — 15-emoji picker, 120-char text input with live counter, optional 30-char label input, Save/Cancel/Clear buttons
+- **Dashboard integration** (`src/app/dashboard/page.tsx`): IntentionSetter card placed above the streak section; loads and displays today's intention on mount
+- **Insights integration** (`src/app/insights/page.tsx`): "Daily Intentions" card showing days this week with intentions set, consecutive-day streak count, and most recent intention preview
+- `npm run lint` — 0 errors, `npm run build` — 19 static pages
+
 ## 2026-06-11
 ### Fixed: CommandPalette Build Failure + Lint Warnings
 - **Duplicate `useState`** (`src/components/CommandPalette.tsx`): Line 19-20 had `const [open, setOpen] = useState(false)` declared twice — removed the duplicate causing the build to fail
