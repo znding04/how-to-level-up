@@ -13,6 +13,7 @@ const tabs = [
   { href: '/calendar', label: 'Calendar' },
   { href: '/skills', label: 'Skills' },
   { href: '/insights', label: 'Insights' },
+  { href: '/journal', label: 'Journal' },
   { href: '/weekly', label: 'Weekly' },
   { href: '/review', label: 'Review' },
   { href: '/settings', label: 'Settings' },
@@ -39,6 +40,8 @@ function TabIcon({ href }: { href: string }) {
       return <svg xmlns="http://www.w3.org/2000/svg" {...props}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
     case '/insights':
       return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M9 18h6" /><path d="M10 22h4" /><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" /></svg>;
+    case '/journal':
+      return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /><line x1="12" y1="6" x2="12" y2="14" /><line x1="8" y1="10" x2="16" y2="10" /></svg>;
     case '/weekly':
       return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>;
     case '/review':

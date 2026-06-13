@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions } from '@/lib/storage';
-import { AppData, Habit, Achievement, DailyIntention, FocusSession } from '@/lib/types';
+import Link from 'next/link';
+import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries } from '@/lib/storage';
+import { AppData, Habit, Achievement, DailyIntention, FocusSession, JournalEntry } from '@/lib/types';
 
 function getWeekDates(weeksAgo: number): string[] {
   const now = new Date();
@@ -123,6 +124,11 @@ export default function InsightsPage() {
   const [allIntentions] = useState<Record<string, DailyIntention>>(() => {
     if (typeof window === 'undefined') return {};
     return loadAllDailyIntentions();
+  });
+
+  const [journalEntries] = useState<JournalEntry[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return loadAllJournalEntries(fullData.activeProfileId);
   });
 
   const thisWeekDates = getWeekDates(0);
@@ -326,6 +332,25 @@ export default function InsightsPage() {
     }
     return streak;
   })();
+
+  // Journal insights
+  const journalEntriesThisWeek = journalEntries.filter((e) => thisWeekDates.includes(e.date));
+  const mostRecentJournalEntry = journalEntries.length > 0 ? journalEntries[0] : null;
+  const journalStreak = (() => {
+    let streak = 0;
+    const d = new Date();
+    for (let i = 0; i < 365; i++) {
+      const dateStr = d.toISOString().split('T')[0];
+      if (journalEntries.some((e) => e.date === dateStr)) {
+        streak++;
+      } else {
+        break;
+      }
+      d.setDate(d.getDate() - 1);
+    }
+    return streak;
+  })();
+  const hasTodayJournal = journalEntries.some((e) => e.date === todayStr);
 
   return (
     <div className="space-y-4">
@@ -611,6 +636,40 @@ export default function InsightsPage() {
           </div>
         </div>
       )}
+
+      {/* Journal */}
+      <div className="bg-card border border-card-border rounded-xl p-4">
+        <h2 className="text-lg font-semibold mb-3">Journal</h2>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-fg-secondary">Entries this week</span>
+            <span className="text-sm font-medium">{journalEntriesThisWeek.length}</span>
+          </div>
+          {journalStreak > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-fg-secondary">Streak</span>
+              <span className="text-sm font-medium">{journalStreak} day{journalStreak !== 1 ? 's' : ''}</span>
+            </div>
+          )}
+          {mostRecentJournalEntry && (
+            <div className="mt-2 pt-2 border-t border-card-border">
+              <p className="text-xs text-fg-muted mb-1">Most recent</p>
+              <p className="text-sm text-foreground">
+                {mostRecentJournalEntry.content.length > 80
+                  ? mostRecentJournalEntry.content.slice(0, 80) + '...'
+                  : mostRecentJournalEntry.content}
+              </p>
+            </div>
+          )}
+          {!hasTodayJournal && (
+            <div className="mt-2 pt-2 border-t border-card-border">
+              <Link href="/journal" className="text-sm text-blue-400 hover:text-blue-300">
+                Write today&apos;s entry &rarr;
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Mood & Energy Snapshots */}
       <div className="grid grid-cols-2 gap-3">

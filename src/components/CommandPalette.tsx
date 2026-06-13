@@ -62,6 +62,7 @@ export default function CommandPalette() {
     { id: 'action-habit', label: 'Log Habit', icon: '✅', category: 'quick', action: () => openHabitLog() },
     { id: 'action-checkin', label: 'Quick Daily Check-in', icon: '📝', category: 'quick', action: () => openCheckin() },
     { id: 'action-skill', label: 'Add Skill Session', icon: '⚡', category: 'quick', action: () => openSkillSession() },
+    { id: 'action-journal', label: 'Write Journal Entry', icon: '📖', category: 'quick', action: () => openJournal() },
   ];
 
   const filteredCommands = query
@@ -148,6 +149,11 @@ export default function CommandPalette() {
     setSessionMinutes(30);
     setSkillSuccess(false);
     setShowSkillSession(true);
+    setOpen(false);
+  }
+
+  function openJournal() {
+    router.push('/journal');
     setOpen(false);
   }
 

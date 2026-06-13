@@ -1,4 +1,4 @@
-import { AppData, DailyIntention, FocusSession, NotificationSettings, Profile, WeeklyPlan } from './types';
+import { AppData, DailyIntention, FocusSession, JournalEntry, NotificationSettings, Profile, WeeklyPlan } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -19,6 +19,7 @@ const defaultData: AppData = {
   goals: [],
   dailyLogs: [],
   skills: [],
+  journalEntries: [],
 };
 
 // Migrate old-format data (no profiles) to new format
@@ -52,7 +53,8 @@ function migrateData(raw: Record<string, unknown>): AppData {
     goals,
     dailyLogs,
     skills,
-  } as AppData;
+    journalEntries: [],
+  } as unknown as AppData;
 }
 
 export function loadData(): AppData {
@@ -353,4 +355,34 @@ export function loadAllDailyIntentions(): Record<string, DailyIntention> {
   const data = loadData();
   const profileId = data.activeProfileId;
   return data.dailyIntentions?.[profileId] ?? {};
+}
+
+// --- Journal Entries ---
+
+export function loadJournalEntry(date: string, profileId: string): JournalEntry | null {
+  const data = loadData();
+  const entries = data.journalEntries ?? [];
+  return entries.find((e) => e.date === date && e.profileId === profileId) ?? null;
+}
+
+export function saveJournalEntry(entry: JournalEntry): void {
+  const data = loadData();
+  if (!data.journalEntries) data.journalEntries = [];
+  const idx = data.journalEntries.findIndex(
+    (e) => e.date === entry.date && e.profileId === entry.profileId
+  );
+  if (idx >= 0) {
+    data.journalEntries[idx] = entry;
+  } else {
+    data.journalEntries.push(entry);
+  }
+  saveData(data);
+}
+
+export function loadAllJournalEntries(profileId: string): JournalEntry[] {
+  const data = loadData();
+  const entries = data.journalEntries ?? [];
+  return entries
+    .filter((e) => e.profileId === profileId)
+    .sort((a, b) => b.date.localeCompare(a.date));
 }

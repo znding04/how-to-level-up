@@ -146,6 +146,15 @@ export interface WeeklyPlan {
   updatedAt: string;
 }
 
+export interface JournalEntry {
+  id: string;
+  profileId: string;
+  date: string; // YYYY-MM-DD
+  content: string; // free-form text, max 5000 chars
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   profiles: Profile[];
   activeProfileId: string;
@@ -153,6 +162,7 @@ export interface AppData {
   goals: Goal[];
   dailyLogs: DailyLog[];
   skills: Skill[];
+  journalEntries: JournalEntry[];
   achievements?: Record<string, Achievement[]>; // profileId -> unlocked achievements
   onboardingCompleted?: Record<string, boolean>;
   habitNotes?: Record<string, Record<string, string>>; // habitId -> date -> note
