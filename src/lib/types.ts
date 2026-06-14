@@ -16,6 +16,7 @@ export interface Habit {
   category?: HabitCategory;
   createdAt: string;
   completions: Record<string, boolean>;
+  skippedDates?: string[]; // YYYY-MM-DD dates when habit was intentionally skipped
 }
 
 export type GoalCategory = 'career' | 'health' | 'learning' | 'personal' | 'financial' | 'creative';

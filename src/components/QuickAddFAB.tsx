@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { loadData, saveData, loadProfileData, todayString, generateId } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId, skipHabit, unskipHabit } from '@/lib/storage';
 import { recordHabitCompletion } from '@/lib/reminders';
 import { SKILL_CATEGORY_CONFIG, SkillCategory } from '@/lib/types';
 
@@ -13,7 +13,7 @@ export default function QuickAddFAB() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Habit logging state
-  const [habitData, setHabitData] = useState<{ id: string; name: string; color: string; done: boolean }[]>([]);
+  const [habitData, setHabitData] = useState<{ id: string; name: string; color: string; done: boolean; skipped: boolean }[]>([]);
 
   // Check-in state
   const [mood, setMood] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
@@ -56,6 +56,7 @@ export default function QuickAddFAB() {
           name: h.name,
           color: h.color,
           done: !!h.completions[today],
+          skipped: (h.skippedDates ?? []).includes(today),
         }))
       );
     }

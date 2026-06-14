@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
@@ -69,7 +69,7 @@ export default function DashboardPage() {
   });
   const totalHabits = todaysHabits.length;
   const completedToday = todaysHabits.filter((h) => h.completions[today]).length;
-  const uncheckedHabits = todaysHabits.filter((h) => !h.completions[today]);
+  const uncheckedHabits = todaysHabits.filter((h) => !h.completions[today] && !h.skippedDates?.includes(today));
 
   // Daily check-in
   const todayLog = profileData.dailyLogs.find((l) => l.date === today);
@@ -193,6 +193,24 @@ export default function DashboardPage() {
     setData(runAchievementCheck({ ...updated }));
   }
 
+  function handleSkipHabit(habitId: string) {
+    const updated = { ...data };
+    const habit = updated.habits.find((h) => h.id === habitId);
+    if (!habit) return;
+    const isSkipped = habit.skippedDates?.includes(today);
+    if (isSkipped) {
+      unskipHabit(habitId, today);
+      habit.skippedDates = (habit.skippedDates ?? []).filter((d) => d !== today);
+    } else {
+      skipHabit(habitId, today);
+      if (!habit.skippedDates) habit.skippedDates = [];
+      habit.skippedDates.push(today);
+      delete habit.completions[today];
+    }
+    saveData(updated);
+    setData(runAchievementCheck({ ...updated }));
+  }
+
   function handleQuickLog() {
     if (!quickMood || !quickEnergy) return;
     const updated = { ...data };
@@ -276,28 +294,59 @@ export default function DashboardPage() {
           <h3 className="text-sm font-medium text-fg-secondary mb-2">Today&apos;s Daily Habits</h3>
           {dailyHabits.length === 0 ? (
             <p className="text-fg-muted text-sm">No daily habits yet — <Link href="/habits" className="text-blue-400 underline">add one</Link></p>
-          ) : dailyHabits.every((h) => h.completions[today]) ? (
+          ) : dailyHabits.every((h) => h.completions[today] || h.skippedDates?.includes(today)) ? (
             <p className="text-green-400 text-sm font-medium">All done for today! 🔥</p>
           ) : null}
           {dailyHabits.length > 0 && (
             <div className="space-y-2">
-              {dailyHabits.map((h) => (
-                <label key={h.id} className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={!!h.completions[today]}
-                    onChange={() => handleToggleHabit(h.id)}
-                    className="w-5 h-5 rounded border-2 border-gray-500 accent-blue-500 cursor-pointer"
-                  />
-                  <span
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: h.color }}
-                  />
-                  <span className={`text-sm ${h.completions[today] ? 'line-through text-fg-muted' : 'text-foreground'}`}>
-                    {h.name}
-                  </span>
-                </label>
-              ))}
+              {dailyHabits.map((h) => {
+                const isSkipped = h.skippedDates?.includes(today);
+                return isSkipped ? (
+                  <div key={h.id} className="flex items-center gap-3 opacity-50">
+                    <span className="w-5 h-5 flex items-center justify-center text-gray-500 text-xs">—</span>
+                    <span
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: h.color }}
+                    />
+                    <span className="text-sm line-through text-fg-muted flex-1">{h.name}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-500/20 text-gray-400 border border-gray-500/30">
+                      skipped
+                    </span>
+                    <button
+                      onClick={() => handleSkipHabit(h.id)}
+                      className="text-xs text-gray-400 hover:text-fg-secondary px-1"
+                      title="Unskip"
+                    >
+                      Unskip
+                    </button>
+                  </div>
+                ) : (
+                  <label key={h.id} className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={!!h.completions[today]}
+                      onChange={() => handleToggleHabit(h.id)}
+                      className="w-5 h-5 rounded border-2 border-gray-500 accent-blue-500 cursor-pointer"
+                    />
+                    <span
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: h.color }}
+                    />
+                    <span className={`text-sm ${h.completions[today] ? 'line-through text-fg-muted' : 'text-foreground'} flex-1`}>
+                      {h.name}
+                    </span>
+                    {!h.completions[today] && (
+                      <button
+                        onClick={(e) => { e.preventDefault(); handleSkipHabit(h.id); }}
+                        className="text-xs text-fg-muted hover:text-fg-secondary hover:bg-surface-hover px-1.5 py-0.5 rounded transition-colors"
+                        title="Skip today"
+                      >
+                        Skip
+                      </button>
+                    )}
+                  </label>
+                );
+              })}
             </div>
           )}
         </div>

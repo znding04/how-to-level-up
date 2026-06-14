@@ -6,6 +6,7 @@ import { loadData, loadProfileData, todayString, loadHabitNotes } from '@/lib/st
 import { Habit } from '@/lib/types';
 
 function getStreak(habit: Habit): number {
+  const skipped = new Set(habit.skippedDates ?? []);
   if (habit.frequency === 'weekly') {
     let streak = 0;
     const d = new Date();
@@ -18,7 +19,7 @@ function getStreak(habit: Habit): number {
         const check = new Date(d);
         check.setDate(check.getDate() + i);
         const key = check.toISOString().split('T')[0];
-        if (habit.completions[key]) {
+        if (habit.completions[key] || skipped.has(key)) {
           weekCompleted = true;
           break;
         }
@@ -40,6 +41,9 @@ function getStreak(habit: Habit): number {
     if (habit.completions[key]) {
       streak++;
       d.setDate(d.getDate() - 1);
+    } else if (skipped.has(key)) {
+      // Skipped days don't break the streak
+      d.setDate(d.getDate() - 1);
     } else {
       break;
     }
@@ -48,12 +52,15 @@ function getStreak(habit: Habit): number {
 }
 
 function getBestStreak(habit: Habit): number {
-  const dates = Object.keys(habit.completions).filter((k) => habit.completions[k]).sort();
-  if (dates.length === 0) return 0;
+  const completionDates = Object.keys(habit.completions).filter((k) => habit.completions[k]).sort();
+  const skippedSet = new Set(habit.skippedDates ?? []);
+  const allActiveDates = new Set([...completionDates, ...(habit.skippedDates ?? [])]);
+  const sortedAll = [...allActiveDates].sort();
+  if (completionDates.length === 0 && sortedAll.length === 0) return 0;
 
   if (habit.frequency === 'weekly') {
     const weeks = new Set<string>();
-    for (const date of dates) {
+    for (const date of sortedAll) {
       const d = new Date(date + 'T00:00:00');
       const day = d.getDay();
       const diffToMonday = day === 0 ? 6 : day - 1;
@@ -77,42 +84,50 @@ function getBestStreak(habit: Habit): number {
     return best;
   }
 
-  let best = 1;
-  let current = 1;
-  for (let i = 1; i < dates.length; i++) {
-    const prev = new Date(dates[i - 1] + 'T00:00:00');
-    const curr = new Date(dates[i] + 'T00:00:00');
-    const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
-    if (diff === 1) {
-      current++;
-      best = Math.max(best, current);
+  if (sortedAll.length === 0) return 0;
+  let best = 0;
+  let current = 0;
+  let prevDate: Date | null = null;
+  for (const dateStr of sortedAll) {
+    const curr = new Date(dateStr + 'T00:00:00');
+    if (prevDate) {
+      const diff = (curr.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+      if (diff === 1) {
+        current++;
+      } else {
+        current = skippedSet.has(dateStr) ? 0 : 1;
+      }
     } else {
-      current = 1;
+      current = skippedSet.has(dateStr) ? 0 : 1;
     }
+    best = Math.max(best, current);
+    prevDate = curr;
   }
   return best;
 }
 
-function getLast30Days(habit: Habit): { completed: boolean; dateKey: string }[] {
-  const result: { completed: boolean; dateKey: string }[] = [];
+function getLast30Days(habit: Habit): { completed: boolean; skipped: boolean; dateKey: string }[] {
+  const result: { completed: boolean; skipped: boolean; dateKey: string }[] = [];
+  const skippedSet = new Set(habit.skippedDates ?? []);
   const d = new Date();
   for (let i = 29; i >= 0; i--) {
     const check = new Date(d);
     check.setDate(d.getDate() - i);
     const key = check.toISOString().split('T')[0];
-    result.push({ completed: !!habit.completions[key], dateKey: key });
+    result.push({ completed: !!habit.completions[key], skipped: skippedSet.has(key), dateKey: key });
   }
   return result;
 }
 
 function getStreakStatus(habit: Habit): 'active' | 'at-risk' | 'broken' {
   const today = todayString();
+  const skippedSet = new Set(habit.skippedDates ?? []);
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-  if (habit.completions[today]) return 'active';
-  if (habit.completions[yesterdayStr]) return 'at-risk';
+  if (habit.completions[today] || skippedSet.has(today)) return 'active';
+  if (habit.completions[yesterdayStr] || skippedSet.has(yesterdayStr)) return 'at-risk';
   return 'broken';
 }
 
@@ -216,16 +231,18 @@ export default function HabitStreaksPage() {
                           key={i}
                           className="flex-1 rounded-sm relative group"
                           style={{
-                            height: day.completed ? '100%' : '20%',
+                            height: day.completed ? '100%' : day.skipped ? '60%' : '20%',
                             backgroundColor: day.completed
                               ? status === 'active'
                                 ? '#22c55e'
                                 : status === 'at-risk'
                                   ? '#f97316'
                                   : '#6b7280'
-                              : 'var(--bar-track)',
+                              : day.skipped
+                                ? '#6b7280'
+                                : 'var(--bar-track)',
                           }}
-                          title={note ? `${day.dateKey}: ${note}` : day.dateKey}
+                          title={day.skipped ? `${day.dateKey}: skipped` : note ? `${day.dateKey}: ${note}` : day.dateKey}
                         >
                           {note && (
                             <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-400" />

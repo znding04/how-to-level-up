@@ -296,6 +296,33 @@ export function clearDailyNotifications(): void {
   }
 }
 
+// --- Habit Skip ---
+
+export function skipHabit(habitId: string, date: string): void {
+  const data = loadData();
+  const habit = data.habits.find((h) => h.id === habitId);
+  if (!habit) return;
+  if (!habit.skippedDates) habit.skippedDates = [];
+  if (!habit.skippedDates.includes(date)) {
+    habit.skippedDates.push(date);
+  }
+  saveData(data);
+}
+
+export function unskipHabit(habitId: string, date: string): void {
+  const data = loadData();
+  const habit = data.habits.find((h) => h.id === habitId);
+  if (!habit || !habit.skippedDates) return;
+  habit.skippedDates = habit.skippedDates.filter((d) => d !== date);
+  saveData(data);
+}
+
+export function isHabitSkipped(habitId: string, date: string): boolean {
+  const data = loadData();
+  const habit = data.habits.find((h) => h.id === habitId);
+  return habit?.skippedDates?.includes(date) ?? false;
+}
+
 // --- Weekly Plans ---
 
 export function getWeekKey(date: Date): string {

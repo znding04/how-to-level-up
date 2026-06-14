@@ -146,7 +146,7 @@ export default function CalendarPage() {
   }
 
   const selectedLog = selectedDate ? logsByDate[selectedDate] : null;
-  const selectedHabits = selectedDate ? habits.filter((h) => (h.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6]).includes(new Date(selectedDate).getDay())).map((h) => ({ ...h, completed: !!h.completions[selectedDate] })) : [];
+  const selectedHabits = selectedDate ? habits.filter((h) => (h.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6]).includes(new Date(selectedDate).getDay())).map((h) => ({ ...h, completed: !!h.completions[selectedDate], skipped: (h.skippedDates ?? []).includes(selectedDate) })) : [];
   const selectedSessions = selectedDate ? (sessionsByDate[selectedDate] || []) : [];
   const selectedGoals = selectedDate ? getGoalsWithTargetDate(selectedDate) : [];
 
@@ -264,8 +264,9 @@ export default function CalendarPage() {
                   return (
                     <div key={h.id} className="flex items-center gap-2 text-sm">
                       <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: h.color }} />
-                      <span className={h.completed ? 'text-green-400' : 'text-fg-muted'}>{h.name}</span>
-                      <span className="text-xs">{h.completed ? '✓' : '—'}</span>
+                      <span className={h.completed ? 'text-green-400' : h.skipped ? 'text-gray-400 line-through' : 'text-fg-muted'}>{h.name}</span>
+                      <span className="text-xs">{h.completed ? '✓' : h.skipped ? '⏭' : '—'}</span>
+                      {h.skipped && <span className="text-[10px] text-gray-400">skipped</span>}
                       {note && <span className="text-xs text-fg-muted">📝 {note}</span>}
                     </div>
                   );

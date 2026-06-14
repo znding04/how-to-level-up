@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import { loadData, saveData, generateId, todayString, loadProfileData, loadHabitNotes, saveHabitNote, removeHabitNote } from '@/lib/storage';
+import { loadData, saveData, generateId, todayString, loadProfileData, loadHabitNotes, saveHabitNote, removeHabitNote, skipHabit, unskipHabit } from '@/lib/storage';
 import { Habit, HabitCategory } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { recordHabitCompletion } from '@/lib/reminders';
@@ -236,6 +236,7 @@ export default function HabitsPage() {
     const habit = habits.find((h) => h.id === id);
     if (!habit) return;
     const wasComplete = !!habit.completions[today];
+    const wasSkipped = habit.skippedDates?.includes(today);
     const updated = habits.map((h) => {
       if (h.id !== id) return h;
       const completions = { ...h.completions };
@@ -243,16 +244,19 @@ export default function HabitsPage() {
       if (!wasComplete) {
         recordHabitCompletion(id, new Date().getHours());
       }
-      return { ...h, completions };
+      // Clear skip if completing
+      const skippedDates = wasSkipped
+        ? (h.skippedDates ?? []).filter((d) => d !== today)
+        : h.skippedDates;
+      return { ...h, completions, skippedDates };
     });
     persist(updated);
+    if (wasSkipped) unskipHabit(id, today);
 
     if (!wasComplete) {
-      // Completing: show note input
       setNoteInputId(id);
       setNoteInputValue(habitNotes[id]?.[today] ?? '');
     } else {
-      // Uncompleting: remove note
       setNoteInputId(null);
       removeHabitNote(id, today);
       setHabitNotes((prev) => {
@@ -264,6 +268,30 @@ export default function HabitsPage() {
         }
         return copy;
       });
+    }
+  }
+
+  function handleSkip(id: string) {
+    const habit = habits.find((h) => h.id === id);
+    if (!habit) return;
+    const isSkipped = habit.skippedDates?.includes(today);
+    if (isSkipped) {
+      // Unskip
+      unskipHabit(id, today);
+      const updated = habits.map((h) =>
+        h.id === id ? { ...h, skippedDates: (h.skippedDates ?? []).filter((d) => d !== today) } : h
+      );
+      persist(updated);
+    } else {
+      // Skip — also clear completion if completed
+      skipHabit(id, today);
+      const updated = habits.map((h) => {
+        if (h.id !== id) return h;
+        const completions = { ...h.completions };
+        delete completions[today];
+        return { ...h, completions, skippedDates: [...(h.skippedDates ?? []), today] };
+      });
+      persist(updated);
     }
   }
 
@@ -318,12 +346,16 @@ export default function HabitsPage() {
     if (habit.frequency === 'weekly') {
       return getWeeklyStreak(habit);
     }
+    const skipped = new Set(habit.skippedDates ?? []);
     let streak = 0;
     const d = new Date();
     while (true) {
       const key = d.toISOString().split('T')[0];
       if (habit.completions[key]) {
         streak++;
+        d.setDate(d.getDate() - 1);
+      } else if (skipped.has(key)) {
+        // Skipped days don't break the streak
         d.setDate(d.getDate() - 1);
       } else {
         break;
@@ -333,14 +365,18 @@ export default function HabitsPage() {
   }
 
   function getBestStreak(habit: Habit): number {
-    const dates = Object.keys(habit.completions).filter((k) => habit.completions[k]).sort();
-    if (dates.length === 0) return 0;
+    const completionDates = Object.keys(habit.completions).filter((k) => habit.completions[k]).sort();
+    const skippedSet = new Set(habit.skippedDates ?? []);
+    // Merge completed and skipped dates for streak counting
+    const allActiveDates = new Set([...completionDates, ...(habit.skippedDates ?? [])]);
+    const sortedAll = [...allActiveDates].sort();
+    if (completionDates.length === 0 && sortedAll.length === 0) return 0;
 
     if (habit.frequency === 'weekly') {
       const scheduled = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
-      const completionSet = new Set(dates);
+      const completionSet = new Set(completionDates);
       const weekCompletions = new Map<string, boolean>();
-      for (const date of dates) {
+      for (const date of sortedAll) {
         const d = new Date(date + 'T00:00:00');
         const dow = d.getDay();
         if (!scheduled.includes(dow)) continue;
@@ -350,14 +386,13 @@ export default function HabitsPage() {
         monday.setDate(monday.getDate() - diffToMonday);
         const weekKey = monday.toISOString().split('T')[0];
         if (!weekCompletions.has(weekKey)) {
-          // Check if all scheduled days in this week have completions
           let allCompleted = true;
           for (let i = 0; i < 7; i++) {
             const checkDate = new Date(monday);
             checkDate.setDate(checkDate.getDate() + i);
             if (!scheduled.includes(checkDate.getDay())) continue;
             const checkKey = checkDate.toISOString().split('T')[0];
-            if (!completionSet.has(checkKey)) {
+            if (!completionSet.has(checkKey) && !skippedSet.has(checkKey)) {
               allCompleted = false;
               break;
             }
@@ -386,18 +421,25 @@ export default function HabitsPage() {
       return best;
     }
 
-    let best = 1;
-    let current = 1;
-    for (let i = 1; i < dates.length; i++) {
-      const prev = new Date(dates[i - 1] + 'T00:00:00');
-      const curr = new Date(dates[i] + 'T00:00:00');
-      const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
-      if (diff === 1) {
-        current++;
-        best = Math.max(best, current);
+    // For daily habits, walk through consecutive days including skipped
+    if (sortedAll.length === 0) return 0;
+    let best = 0;
+    let current = 0;
+    let prevDate: Date | null = null;
+    for (const dateStr of sortedAll) {
+      const curr = new Date(dateStr + 'T00:00:00');
+      if (prevDate) {
+        const diff = (curr.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+        if (diff === 1) {
+          current++;
+        } else {
+          current = skippedSet.has(dateStr) ? 0 : 1;
+        }
       } else {
-        current = 1;
+        current = skippedSet.has(dateStr) ? 0 : 1;
       }
+      best = Math.max(best, current);
+      prevDate = curr;
     }
     return best;
   }
@@ -415,6 +457,7 @@ export default function HabitsPage() {
 
   function getWeeklyStreak(habit: Habit): number {
     const scheduled = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
+    const skipped = new Set(habit.skippedDates ?? []);
     let streak = 0;
     const d = new Date();
     const day = d.getDay();
@@ -431,7 +474,7 @@ export default function HabitsPage() {
         if (!scheduled.includes(dow)) continue;
         hasScheduledDay = true;
         const key = check.toISOString().split('T')[0];
-        if (!habit.completions[key]) {
+        if (!habit.completions[key] && !skipped.has(key)) {
           weekCompleted = false;
           break;
         }
@@ -769,20 +812,31 @@ export default function HabitsPage() {
                       className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${
                         habit.completions[today]
                           ? 'border-green-500 bg-green-500/20 text-green-400'
-                          : 'border-input-border hover:border-fg-secondary'
+                          : habit.skippedDates?.includes(today)
+                            ? 'border-gray-500 bg-gray-500/20 text-gray-400'
+                            : 'border-input-border hover:border-fg-secondary'
                       }`}
                     >
-                      {habit.completions[today] && '✓'}
+                      {habit.completions[today] ? '✓' : habit.skippedDates?.includes(today) ? '⏭' : ''}
                     </button>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span
                           className={`font-medium ${
-                            habit.completions[today] ? 'line-through text-fg-muted' : ''
+                            habit.completions[today]
+                              ? 'line-through text-fg-muted'
+                              : habit.skippedDates?.includes(today)
+                                ? 'line-through text-fg-muted'
+                                : ''
                           }`}
                         >
                           {habit.name}
                         </span>
+                        {habit.skippedDates?.includes(today) && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-500/20 text-gray-400 border border-gray-500/30">
+                            skipped
+                          </span>
+                        )}
                         {habit.category && (
                           <span className={`text-[10px] px-1.5 py-0.5 rounded border ${getCategoryStyle(habit.category)}`}>
                             {getCategoryLabel(habit.category)}
@@ -815,6 +869,17 @@ export default function HabitsPage() {
                         <div className="text-fg-muted">7d: {getWeeklyCompletionRate(habit)}%</div>
                       )}
                     </div>
+                    <button
+                      onClick={() => handleSkip(habit.id)}
+                      className={`text-xs px-1.5 py-0.5 rounded transition-colors ${
+                        habit.skippedDates?.includes(today)
+                          ? 'bg-gray-500/20 text-gray-400 hover:bg-gray-500/30'
+                          : 'text-fg-muted hover:text-fg-secondary hover:bg-surface-hover'
+                      }`}
+                      title={habit.skippedDates?.includes(today) ? 'Unskip' : 'Skip today'}
+                    >
+                      {habit.skippedDates?.includes(today) ? 'Unskip' : 'Skip'}
+                    </button>
                     <HabitReminders habitId={habit.id} habitName={habit.name} />
                     <button
                       onClick={() => startEdit(habit)}

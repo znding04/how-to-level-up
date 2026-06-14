@@ -1,5 +1,16 @@
 # 变强 — Progress Log
 
+## 2026-06-14
+### Added: Habit Skip/Delay Feature
+- **skippedDates field** (`src/lib/types.ts`): New optional `skippedDates?: string[]` on `Habit` interface — array of YYYY-MM-DD dates when habit was skipped
+- **Storage helpers** (`src/lib/storage.ts`): `skipHabit()`, `unskipHabit()`, `isHabitSkipped()` helpers for skip management
+- **Habits page** (`src/app/habits/page.tsx`): Added skip button (>> icon) next to each habit; skipped habits show dimmed strikethrough with gray "skipped" badge; unskip restores normal state
+- **Habits streaks** (`src/app/habits/streaks/page.tsx`): Streak logic treats skipped days as neutral — they do NOT break streaks, only missed scheduled days do
+- **Habits trends** (`src/app/habits/trends/page.tsx`): Heatmap shows skipped days in gray; completion rate calculations treat skipped dates as neutral (neither completion nor miss)
+- **Calendar** (`src/app/calendar/page.tsx`): Day detail panel shows skipped habits with "—" indicator instead of checkmark
+- **QuickAddFAB** (`src/components/QuickAddFAB.tsx`): "Log Habit" panel has skip button per habit
+- `npm run lint` — 0 errors, `npm run build` — success
+
 ## 2026-06-12
 ### Added: Daily Morning Intention System
 - **DailyIntention type** (`src/lib/types.ts`): `{ text: string (max 120), emoji?: string, createdAt: string, label?: string (max 30) }` interface with `dailyIntentions` field on `AppData`

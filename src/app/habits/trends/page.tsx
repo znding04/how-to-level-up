@@ -36,37 +36,42 @@ export default function HabitTrendsPage() {
   // Build heatmap data: 12 weeks x 7 days grid
   const heatmapData = useMemo(() => {
     const today = new Date();
-    const grid: { date: string; count: number; total: number }[][] = [];
+    const grid: { date: string; count: number; total: number; skippedCount: number }[][] = [];
 
     const startMonday = getMondayOfWeek(today);
     startMonday.setDate(startMonday.getDate() - (WEEKS - 1) * 7);
 
     for (let w = 0; w < WEEKS; w++) {
-      const week: { date: string; count: number; total: number }[] = [];
+      const week: { date: string; count: number; total: number; skippedCount: number }[] = [];
       for (let d = 0; d < 7; d++) {
         const cellDate = new Date(startMonday);
         cellDate.setDate(cellDate.getDate() + w * 7 + d);
         const key = getDateKey(cellDate);
 
-        // Don't count future dates
         const isFuture = cellDate > today;
         let count = 0;
         let total = 0;
+        let skippedCount = 0;
 
         if (!isFuture) {
           const cellDow = cellDate.getDay();
           for (const habit of filteredHabits) {
-            if (habit.frequency === 'weekly') continue; // skip weekly habits in daily grid
+            if (habit.frequency === 'weekly') continue;
             const scheduledDays = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
             if (!scheduledDays.includes(cellDow)) continue;
             if (key >= habit.createdAt) {
-              total++;
-              if (habit.completions[key]) count++;
+              const isSkipped = (habit.skippedDates ?? []).includes(key);
+              if (isSkipped) {
+                skippedCount++;
+              } else {
+                total++;
+                if (habit.completions[key]) count++;
+              }
             }
           }
         }
 
-        week.push({ date: key, count, total });
+        week.push({ date: key, count, total, skippedCount });
       }
       grid.push(week);
     }
@@ -97,8 +102,11 @@ export default function HabitTrendsPage() {
           const scheduledDays = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
           if (!scheduledDays.includes(cellDow)) continue;
           if (key >= habit.createdAt) {
-            possible++;
-            if (habit.completions[key]) completed++;
+            const isSkipped = (habit.skippedDates ?? []).includes(key);
+            if (!isSkipped) {
+              possible++;
+              if (habit.completions[key]) completed++;
+            }
           }
         }
       }
@@ -121,6 +129,7 @@ export default function HabitTrendsPage() {
       let completedLast30 = 0;
       let possibleLast30 = 0;
       const scheduledDays = habit.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6];
+      const skippedSet = new Set(habit.skippedDates ?? []);
       for (let i = 0; i < 30; i++) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
@@ -128,12 +137,12 @@ export default function HabitTrendsPage() {
         if (key >= habit.createdAt) {
           if (habit.frequency === 'daily') {
             if (!scheduledDays.includes(d.getDay())) continue;
+            if (skippedSet.has(key)) continue; // skipped = neutral
             possibleLast30++;
             if (habit.completions[key]) completedLast30++;
           }
         }
       }
-      // For weekly habits, count weeks
       if (habit.frequency === 'weekly') {
         const weeks = new Set<string>();
         const completedWeeks = new Set<string>();
@@ -158,7 +167,8 @@ export default function HabitTrendsPage() {
   const maxRate = Math.max(...weeklyRates.map((r) => r.rate), 1);
   const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-  function getCellColor(count: number, total: number): string {
+  function getCellColor(count: number, total: number, skippedCount: number): string {
+    if (total === 0 && skippedCount > 0) return 'bg-gray-600';
     if (total === 0) return 'bg-gray-800';
     const ratio = count / total;
     if (ratio === 0) return 'bg-gray-800';
@@ -227,8 +237,8 @@ export default function HabitTrendsPage() {
                   {week.map((cell, di) => (
                     <div
                       key={di}
-                      className={`w-4 h-4 rounded-sm ${getCellColor(cell.count, cell.total)}`}
-                      title={`${cell.date}: ${cell.count}/${cell.total}`}
+                      className={`w-4 h-4 rounded-sm ${getCellColor(cell.count, cell.total, cell.skippedCount)}`}
+                      title={`${cell.date}: ${cell.count}/${cell.total}${cell.skippedCount > 0 ? ` (${cell.skippedCount} skipped)` : ''}`}
                     />
                   ))}
                 </div>
@@ -243,6 +253,9 @@ export default function HabitTrendsPage() {
               <div className="w-3 h-3 rounded-sm bg-green-500" />
               <div className="w-3 h-3 rounded-sm bg-green-400" />
               <span>More</span>
+              <span className="ml-2">|</span>
+              <div className="w-3 h-3 rounded-sm bg-gray-600" />
+              <span>Skipped</span>
             </div>
           </div>
 
