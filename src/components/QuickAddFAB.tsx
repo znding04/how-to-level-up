@@ -91,7 +91,23 @@ export default function QuickAddFAB() {
     }
     saveData(data);
     setHabitData((prev) =>
-      prev.map((h) => (h.id === habitId ? { ...h, done: !h.done } : h))
+      prev.map((h) => (h.id === habitId ? { ...h, done: !wasComplete, skipped: false } : h))
+    );
+  }
+
+  function toggleSkip(habitId: string) {
+    const today = todayString();
+    const data = loadData();
+    const habit = data.habits.find((h) => h.id === habitId);
+    if (!habit) return;
+    const isSkipped = (habit.skippedDates ?? []).includes(today);
+    if (isSkipped) {
+      unskipHabit(habitId, today);
+    } else {
+      skipHabit(habitId, today);
+    }
+    setHabitData((prev) =>
+      prev.map((h) => (h.id === habitId ? { ...h, skipped: !isSkipped, done: false } : h))
     );
   }
 
@@ -169,21 +185,58 @@ export default function QuickAddFAB() {
               ) : (
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {habitData.map((h) => (
-                    <label key={h.id} className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={h.done}
-                        onChange={() => toggleHabit(h.id)}
-                        className="w-4 h-4 rounded border-2 border-gray-500 accent-blue-500 cursor-pointer"
-                      />
-                      <span
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: h.color }}
-                      />
-                      <span className={`text-sm ${h.done ? 'line-through text-fg-muted' : ''}`}>
-                        {h.name}
-                      </span>
-                    </label>
+                    <div key={h.id} className="flex items-center gap-2">
+                      {h.skipped ? (
+                        <>
+                          <span className="text-lg text-fg-muted select-none">—</span>
+                          <span
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0 opacity-40"
+                            style={{ backgroundColor: h.color }}
+                          />
+                          <span className="text-sm line-through text-fg-muted flex-1">{h.name}</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-gray-500/20 text-gray-400">skipped</span>
+                          <button
+                            onClick={() => toggleSkip(h.id)}
+                            className="text-xs text-fg-muted hover:text-fg-secondary"
+                          >unskip</button>
+                        </>
+                      ) : h.done ? (
+                        <>
+                          <input
+                            type="checkbox"
+                            checked
+                            onChange={() => toggleHabit(h.id)}
+                            className="w-4 h-4 rounded border-2 border-gray-500 accent-blue-500 cursor-pointer"
+                          />
+                          <span
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: h.color }}
+                          />
+                          <span className="text-sm line-through text-fg-muted flex-1">{h.name}</span>
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            type="checkbox"
+                            checked={false}
+                            onChange={() => toggleHabit(h.id)}
+                            className="w-4 h-4 rounded border-2 border-gray-500 accent-blue-500 cursor-pointer"
+                          />
+                          <span
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: h.color }}
+                          />
+                          <span className="text-sm flex-1">{h.name}</span>
+                          <button
+                            onClick={() => toggleSkip(h.id)}
+                            className="text-xs text-fg-muted hover:text-fg-secondary px-1.5 py-0.5 rounded hover:bg-surface-hover"
+                            title="Skip today"
+                          >
+                            skip
+                          </button>
+                        </>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
