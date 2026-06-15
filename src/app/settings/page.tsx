@@ -14,6 +14,12 @@ import {
 import { AppData, Profile } from '@/lib/types';
 import { useTheme } from '@/components/ThemeProvider';
 import NotificationSettings from '@/components/NotificationSettings';
+import {
+  exportHabitsCsv,
+  exportSkillsCsv,
+  exportDailyLogsCsv,
+  exportFocusSessionsCsv,
+} from '@/lib/csv-export';
 
 const LAST_BACKUP_KEY = 'last-backup-date';
 
@@ -372,6 +378,56 @@ export default function SettingsPage() {
               Last backup: {lastBackup}
             </p>
           )}
+
+          {/* CSV Export */}
+          <div className="border-t border-border pt-3 space-y-2">
+            <p className="text-sm font-medium">Export as CSV</p>
+            <p className="text-xs text-fg-muted">
+              Export individual data sets as CSV files for spreadsheet analysis
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => exportHabitsCsv(data, data.activeProfileId)}
+                className="flex items-center justify-center gap-1.5 bg-surface-dim hover:bg-surface text-xs text-fg-secondary rounded-xl py-2.5 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                Habits
+              </button>
+              <button
+                onClick={() => exportSkillsCsv(data, data.activeProfileId)}
+                className="flex items-center justify-center gap-1.5 bg-surface-dim hover:bg-surface text-xs text-fg-secondary rounded-xl py-2.5 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                Skills
+              </button>
+              <button
+                onClick={() => exportDailyLogsCsv(data, data.activeProfileId)}
+                className="flex items-center justify-center gap-1.5 bg-surface-dim hover:bg-surface text-xs text-fg-secondary rounded-xl py-2.5 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                Daily Logs
+              </button>
+              <button
+                onClick={() => exportFocusSessionsCsv()}
+                className="flex items-center justify-center gap-1.5 bg-surface-dim hover:bg-surface text-xs text-fg-secondary rounded-xl py-2.5 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                Focus Sessions
+              </button>
+            </div>
+          </div>
         </div>
       </Section>
 

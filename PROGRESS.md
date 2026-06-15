@@ -1,5 +1,17 @@
 # 变强 — Progress Log
 
+## 2026-06-15
+### Added: CSV Data Export
+- **CSV export utility** (`src/lib/csv-export.ts`): Four export functions for converting app data to CSV files:
+  - `exportHabitsCsv()`: Matrix of habits x dates — columns for each date, values are "done", "skipped", or empty; includes category, frequency, and scheduled days
+  - `exportSkillsCsv()`: Per-skill rows with total hours, level, and individual session breakdowns (date, minutes, notes)
+  - `exportDailyLogsCsv()`: Date, mood (1-5), energy (1-5), and notes for each daily log entry
+  - `exportFocusSessionsCsv()`: Date, skill, duration, rating, and notes for each focus session
+- **Settings page** (`src/app/settings/page.tsx`): Four CSV export buttons in a 2x2 grid added to the Data section below existing JSON backup — one button per data type (Habits, Skills, Daily Logs, Focus Sessions)
+- Proper CSV escaping for fields containing commas, quotes, or newlines
+- Profile-aware: exports only active profile's data (except focus sessions which are global)
+- `npm run lint` — 0 errors, `npm run build` — success (20 static pages)
+
 ## 2026-06-14
 ### Added: Habit Skip/Delay Feature
 - **skippedDates field** (`src/lib/types.ts`): New optional `skippedDates?: string[]` on `Habit` interface — array of YYYY-MM-DD dates when habit was skipped
