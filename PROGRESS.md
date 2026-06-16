@@ -1,5 +1,14 @@
 # 变强 — Progress Log
 
+## 2026-06-16
+### Added: Daily/Weekly Review Recap
+- **Recap generator** (`src/lib/recap.ts`): `generateRecap(appData, mode)` function producing a plain-text summary of today's or this week's progress — includes habits completed vs scheduled, mood/energy averages, skills practiced with total minutes, goal milestones completed, focus session count and total time, streak highlights (7+ day streaks), and a random motivational closing line
+- **Recap page** (`src/app/recap/page.tsx`): New `/recap` route with today/week toggle, styled pre block displaying the generated recap, "Copy to Clipboard" button with success feedback, and "Share" button using Web Share API with graceful fallback
+- **Insights integration** (`src/app/insights/page.tsx`): Added "Weekly Recap" card linking to `/recap` at the bottom of the insights page
+- Uses existing data from `loadData()`, `loadProfileData()`, and `loadFocusSessions()` — no new storage needed
+- Theme-aware styling using CSS variable classes (bg-card, border-card-border, bg-surface, text-foreground, text-fg-secondary)
+- `npm run lint` — 0 errors, `npm run build` — success
+
 ## 2026-06-15
 ### Added: CSV Data Export
 - **CSV export utility** (`src/lib/csv-export.ts`): Four export functions for converting app data to CSV files:

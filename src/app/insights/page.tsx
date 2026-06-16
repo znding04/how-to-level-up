@@ -736,6 +736,17 @@ export default function InsightsPage() {
         </div>
       )}
 
+      {/* Weekly Recap */}
+      <Link href="/recap" className="block bg-card border border-card-border hover:border-blue-500/40 rounded-xl p-4 transition-colors">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold flex items-center gap-2">Weekly Recap</h2>
+            <p className="text-sm text-fg-secondary mt-1">Generate a shareable summary of your progress</p>
+          </div>
+          <span className="text-fg-muted text-lg">&rarr;</span>
+        </div>
+      </Link>
+
       {/* Empty state */}
       {dailyHabits.length === 0 && profileData.skills.length === 0 && weekLogs.length === 0 && (
         <div className="bg-card border border-card-border rounded-xl p-6 text-center">
