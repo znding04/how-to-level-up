@@ -1,5 +1,19 @@
 # 变强 — Progress Log
 
+## 2026-06-17
+### Added: Onboarding / First-Run Experience
+- **Onboarding state tracking** (`src/lib/storage.ts`): `onboardingCompleted` flag per profile — `createProfile()` now initializes new profiles with `onboardingCompleted: false`; helper functions `isOnboardingCompleted(profileId)` and `markOnboardingCompleted(profileId)` added
+- **Onboarding page** (`src/app/onboarding/page.tsx`): New `/onboarding` route — 5-step wizard with progress indicator, Back/Next navigation, and "Skip onboarding" link:
+  - Step 1 — Welcome: App name, tagline, description, "Get Started" CTA
+  - Step 2 — Create First Habit: Name/color/frequency/day-picker form + 3 quick-add suggestions (Morning Exercise, Read 30 min, Meditate)
+  - Step 3 — Set a Goal: Title/description/target date form + 3 quick-add suggestions
+  - Step 4 — Track a Skill: Name/color form + 3 quick-add suggestions
+  - Step 5 — Daily Check-in Setup: Mood/energy emoji preview with "Finish Setup" CTA
+- **Dashboard guard** (`src/app/dashboard/page.tsx`): `useEffect` redirect to `/onboarding` when `isOnboardingCompleted(activeProfileId)` returns false — new users land directly in onboarding instead of an empty dashboard
+- **Settings integration** (`src/app/settings/page.tsx`): "Reset Onboarding" option added to Profile Management section — allows re-running the onboarding flow
+- Smooth fade transitions between steps, fully theme-compatible (CSS variable classes), mobile-first responsive
+- `npm run lint` — 0 errors, `npm run build` — success (20 static pages including `/onboarding`)
+
 ## 2026-06-16
 ### Added: Daily/Weekly Review Recap
 - **Recap generator** (`src/lib/recap.ts`): `generateRecap(appData, mode)` function producing a plain-text summary of today's or this week's progress — includes habits completed vs scheduled, mood/energy averages, skills practiced with total minutes, goal milestones completed, focus session count and total time, streak highlights (7+ day streaks), and a random motivational closing line
