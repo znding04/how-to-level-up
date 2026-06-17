@@ -246,6 +246,20 @@ export default function SettingsPage() {
             </div>
           ))}
 
+          {/* Reset Onboarding */}
+          <div className="border-t border-border pt-3">
+            <button
+              onClick={() => {
+                resetOnboarding(data.activeProfileId);
+                alert('Onboarding has been reset. Visit the dashboard to see it again.');
+              }}
+              className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              Reset Onboarding
+            </button>
+            <p className="text-xs text-fg-muted mt-1">Re-run the onboarding wizard for the active profile.</p>
+          </div>
+
           {/* Create new profile */}
           <div className="flex gap-2 pt-1">
             <input
@@ -449,15 +463,6 @@ export default function SettingsPage() {
             A self-improvement tracking app to build habits, set goals, log your
             daily mood and energy, and track skill progress.
           </p>
-          <button
-            onClick={() => {
-              resetOnboarding(data.activeProfileId);
-              alert('Onboarding has been reset. Visit the dashboard to see it again.');
-            }}
-            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            Reset Onboarding
-          </button>
         </div>
       </Section>
     </div>

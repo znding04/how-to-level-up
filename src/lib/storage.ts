@@ -98,6 +98,8 @@ export function createProfile(name: string): AppData {
     name,
     createdAt: new Date().toISOString().split('T')[0],
   };
+  if (!data.onboardingCompleted) data.onboardingCompleted = {};
+  data.onboardingCompleted[profile.id] = false;
   const updated = {
     ...data,
     profiles: [...data.profiles, profile],
