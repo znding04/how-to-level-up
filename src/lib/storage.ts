@@ -408,6 +408,13 @@ export function saveJournalEntry(entry: JournalEntry): void {
   saveData(data);
 }
 
+export function loadJournalEntriesForMonth(month: number, year: number, profileId: string): JournalEntry[] {
+  const data = loadData();
+  const entries = data.journalEntries ?? [];
+  const prefix = `${year}-${String(month).padStart(2, '0')}`;
+  return entries.filter((e) => e.profileId === profileId && e.date.startsWith(prefix));
+}
+
 export function loadAllJournalEntries(profileId: string): JournalEntry[] {
   const data = loadData();
   const entries = data.journalEntries ?? [];

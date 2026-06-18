@@ -147,11 +147,14 @@ export interface WeeklyPlan {
   updatedAt: string;
 }
 
+export type JournalMood = 'great' | 'good' | 'okay' | 'bad' | 'terrible';
+
 export interface JournalEntry {
   id: string;
   profileId: string;
   date: string; // YYYY-MM-DD
   content: string; // free-form text, max 5000 chars
+  mood?: JournalMood;
   createdAt: string;
   updatedAt: string;
 }
