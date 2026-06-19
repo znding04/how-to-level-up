@@ -1,5 +1,16 @@
 # 变强 — Progress Log
 
+## 2026-06-18
+### Added: Journal Mood Tagging & Calendar View
+- **JournalEntry type** (`src/lib/types.ts`): New `JournalEntry { id, profileId, date, content (max 5000 chars), mood?, createdAt, updatedAt }` interface with `JournalMood` type (`'terrible' | 'bad' | 'okay' | 'good' | 'great'`); added `journalEntries: JournalEntry[]` field on `AppData`
+- **Journal storage helpers** (`src/lib/storage.ts`): `loadJournalEntry()`, `saveJournalEntry()`, `loadJournalEntriesForMonth()`, `loadAllJournalEntries()` — keyed by date and profileId
+- **Journal page** (`src/app/journal/page.tsx`): New `/journal` route with date navigation (prev/next day, back to today), mood selector with 5 emoji options (😞😕😐🙂😊), auto-saving text editor with 1-second debounce, word count and character count display, daily writing prompt rotation
+- **Journal calendar** (`src/app/journal/calendar/page.tsx`): Monthly calendar view showing blue dots on days with entries and mood emojis, month navigation with "Today" button, clickable days linking to journal editor for that date, legend card
+- **Insights integration** (`src/app/insights/page.tsx`): Journal streak, entries this week, and recent entry preview cards added to insights dashboard
+- **TabNav**: Added "Journal" tab with pen SVG icon
+- **Command palette**: Added action to open journal
+- `npm run lint` — 0 errors, `npm run build` — success
+
 ## 2026-06-17
 ### Added: Onboarding / First-Run Experience
 - **Onboarding state tracking** (`src/lib/storage.ts`): `onboardingCompleted` flag per profile — `createProfile()` now initializes new profiles with `onboardingCompleted: false`; helper functions `isOnboardingCompleted(profileId)` and `markOnboardingCompleted(profileId)` added
