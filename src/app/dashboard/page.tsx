@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
@@ -90,6 +90,15 @@ export default function DashboardPage() {
       ? Math.round((completedMilestones / allMilestones.length) * 100)
       : 0;
 
+  // Yearly Vision
+  const currentYear = getCurrentYear();
+  const yearlyVision = loadYearlyVision(data.activeProfileId, currentYear);
+  const visionWord = yearlyVision?.yearWord;
+  const visionStatements = yearlyVision?.identityStatements ?? [];
+  const visionGoals = yearlyVision?.annualGoals ?? [];
+  const visionGoalMilestones = visionGoals.reduce((acc, g) => acc + g.milestones.length, 0);
+  const visionCompletedMilestones = visionGoals.reduce((acc, g) => acc + g.milestones.filter(m => m.completed).length, 0);
+
   // Skills - hours this week
   const weekDates = getWeekDates();
   const weekMinutes = profileData.skills.reduce((sum, skill) => {
@@ -101,6 +110,9 @@ export default function DashboardPage() {
     );
   }, 0);
   const weekHours = (weekMinutes / 60).toFixed(1);
+
+  // Active challenges
+  const activeChallenges = getActiveChallenges();
 
   // Streak - consecutive days with at least one habit completed
   let streak = 0;
@@ -604,6 +616,78 @@ export default function DashboardPage() {
           <p className="text-xs text-fg-muted mt-1">
             So close: {nearMissHint.icon} {nearMissHint.title}
           </p>
+        )}
+      </div>
+      </Link>
+
+      {/* Active Challenges */}
+      <Link href="/challenges" className="block">
+      <div className="bg-card border border-card-border hover:border-blue-500/40 rounded-2xl p-4 transition-colors">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold flex items-center gap-2">
+            🎯 Challenges
+          </h2>
+          <span className="text-sm text-blue-400">
+            View All →
+          </span>
+        </div>
+        {activeChallenges.length === 0 ? (
+          <p className="text-fg-muted text-sm">
+            No active challenges.{' '}
+            <span className="text-blue-400">Start one →</span>
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {activeChallenges.slice(0, 2).map((c) => {
+              const rate = getChallengeCompletionRate(c.id, today);
+              return (
+                <div key={c.id}>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-sm font-medium truncate flex-1 mr-2">{c.name}</span>
+                    <span className="text-xs text-fg-muted">{rate}%</span>
+                  </div>
+                  <div className="w-full bg-bar-track rounded-full h-1.5">
+                    <div
+                      className={`h-1.5 rounded-full ${rate >= 80 ? 'bg-green-500' : rate >= 50 ? 'bg-blue-500' : 'bg-yellow-500'}`}
+                      style={{ width: `${rate}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      </Link>
+
+      {/* Yearly Vision */}
+      <Link href="/yearly" className="block">
+      <div className="bg-card border border-card-border hover:border-purple-500/40 rounded-2xl p-4 transition-colors">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold flex items-center gap-2">
+            ⭐ Yearly Vision
+          </h2>
+          <span className="text-sm text-blue-400">
+            {currentYear} →
+          </span>
+        </div>
+        {visionWord && (
+          <p className="text-lg font-bold text-purple-400 mb-2">{visionWord}</p>
+        )}
+        {visionStatements.length > 0 ? (
+          <p className="text-sm text-foreground italic">&quot;I am {visionStatements[0].text}&quot;</p>
+        ) : (
+          <p className="text-fg-muted text-sm">
+            No vision set.{' '}
+            <span className="text-purple-400">Plan your {currentYear} →</span>
+          </p>
+        )}
+        {visionGoals.length > 0 && (
+          <div className="mt-2">
+            <p className="text-xs text-fg-muted mb-1">
+              {visionGoals.length} goal{visionGoals.length !== 1 ? 's' : ''} · {visionGoalMilestones > 0 ? `${visionCompletedMilestones}/${visionGoalMilestones} milestones` : 'no milestones yet'}
+            </p>
+          </div>
         )}
       </div>
       </Link>

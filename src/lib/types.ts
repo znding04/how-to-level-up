@@ -159,6 +159,43 @@ export interface JournalEntry {
   updatedAt: string;
 }
 
+export interface HabitChallenge {
+  id: string;
+  name: string;
+  description?: string;
+  habitIds: string[]; // which habits are in this challenge
+  startDate: string;  // YYYY-MM-DD
+  endDate: string;     // YYYY-MM-DD
+  status: 'active' | 'completed' | 'abandoned';
+  createdAt: string;
+}
+
+export interface IdentityStatement {
+  id: string;
+  text: string;       // max 100 chars
+  createdAt: string;
+}
+
+export interface AnnualGoal {
+  id: string;
+  title: string;        // max 80 chars
+  description?: string; // max 200 chars
+  targetSkills?: string[]; // skillIds that this goal relates to
+  milestones: { id: string; title: string; completed: boolean }[];
+  status: 'active' | 'completed' | 'archived';
+  createdAt: string;
+}
+
+export interface YearlyVision {
+  year: number;
+  identityStatements: IdentityStatement[];
+  annualGoals: AnnualGoal[];
+  yearWord?: string;     // max 20 chars
+  yearTheme?: string;    // max 30 chars
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   profiles: Profile[];
   activeProfileId: string;
@@ -172,4 +209,6 @@ export interface AppData {
   habitNotes?: Record<string, Record<string, string>>; // habitId -> date -> note
   weeklyPlans?: Record<string, Record<string, WeeklyPlan>>; // profileId -> weekKey -> plan
   dailyIntentions?: Record<string, Record<string, DailyIntention>>; // profileId -> YYYY-MM-DD -> intention
+  challenges?: HabitChallenge[]; // global list of challenges
+  yearlyVision?: Record<string, YearlyVision>; // profileId -> yearly vision
 }

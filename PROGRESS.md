@@ -1,5 +1,15 @@
 # 变强 — Progress Log
 
+## 2026-06-21
+### Added: Yearly Vision / Identity Planning
+- **YearlyVision types** (`src/lib/types.ts`): New `IdentityStatement { id, text, createdAt }`, `AnnualGoal { id, title, description?, targetSkills?, milestones, status, createdAt }`, and `YearlyVision { year, identityStatements, annualGoals, yearWord?, yearTheme?, createdAt, updatedAt }` interfaces; added `yearlyVision?: Record<string, YearlyVision>` to `AppData`
+- **Yearly storage helpers** (`src/lib/storage.ts`): `getCurrentYear()`, `loadYearlyVision()`, `saveYearlyVision()`, `createDefaultYearlyVision()` — keyed by profileId
+- **Yearly page** (`src/app/yearly/page.tsx`): New `/yearly` route with year navigation (prev/next arrows, current year), year word/theme card, up to 5 "I am..." identity statements with inline editing, annual goals with milestones checklist and progress bars, progress overview at-a-glance card, all profile-aware and auto-saving
+- **TabNav**: Added "Yearly" tab between Goals and Achievements with star icon
+- **Dashboard card**: Yearly Vision card showing year word, first identity statement preview, and goals/milestones progress with link to `/yearly`
+- **Command palette**: Added "Go to Yearly Vision" navigation action
+- `npm run lint` — 0 errors, `npm run build` — success (26 static pages including `/yearly`)
+
 ## 2026-06-18
 ### Added: Journal Mood Tagging & Calendar View
 - **JournalEntry type** (`src/lib/types.ts`): New `JournalEntry { id, profileId, date, content (max 5000 chars), mood?, createdAt, updatedAt }` interface with `JournalMood` type (`'terrible' | 'bad' | 'okay' | 'good' | 'great'`); added `journalEntries: JournalEntry[]` field on `AppData`

@@ -1,4 +1,4 @@
-import { Achievement, AppData } from './types';
+import { Achievement, AppData, HabitChallenge } from './types';
 import { todayString } from './storage';
 
 export type AchievementDef = {
@@ -18,6 +18,7 @@ type ProfileSnapshot = {
   profiles: AppData['profiles'];
   profileId: string;
   hasExported: boolean;
+  challenges: HabitChallenge[];
 };
 
 function getHabitStreak(habit: { completions: Record<string, boolean> }): number {
@@ -49,6 +50,38 @@ function getConsecutiveDailyLogs(logs: AppData['dailyLogs']): number {
       break;
     }
   }
+  return streak;
+}
+
+function calcChallengeStreak(challenge: HabitChallenge, allHabits: AppData['habits']): number {
+  // Calculate consecutive perfect days for a challenge
+  const habitMap = new Map(allHabits.map((h) => [h.id, h]));
+  const today = new Date();
+  let streak = 0;
+
+  // Go back up to 90 days to find the streak
+  for (let offset = 0; offset < 90; offset++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - offset);
+    const dateStr = d.toISOString().split('T')[0];
+
+    // Don't go before challenge start
+    if (dateStr < challenge.startDate) break;
+
+    // Check if ALL habits in challenge were done (or skipped) on this day
+    const allDone = challenge.habitIds.every((habitId) => {
+      const habit = habitMap.get(habitId);
+      if (!habit) return false;
+      return !!habit.completions[dateStr] || habit.skippedDates?.includes(dateStr);
+    });
+
+    if (allDone) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
   return streak;
 }
 
@@ -243,6 +276,29 @@ export const ACHIEVEMENT_DEFS: AchievementDef[] = [
     category: 'streaks',
     check: (s) => s.habits.some((h) => getHabitStreak(h) >= 90),
   },
+  {
+    id: 'challenge_complete',
+    title: 'Challenge Champion',
+    description: 'Complete a habit challenge (50%+ completion rate)',
+    icon: '🏅',
+    category: 'habits',
+    check: (s) => s.challenges.some((c) => c.status === 'completed'),
+  },
+  {
+    id: 'challenge_streak',
+    title: 'Unstoppable',
+    description: '100% completion for 7+ consecutive days in a challenge',
+    icon: '⚡',
+    category: 'habits',
+    check: (s) => {
+      for (const challenge of s.challenges) {
+        if (challenge.status !== 'active') continue;
+        const streak = calcChallengeStreak(challenge, s.habits);
+        if (streak >= 7) return true;
+      }
+      return false;
+    },
+  },
 ];
 
 const LAST_BACKUP_KEY = 'last-backup-date';
@@ -259,6 +315,7 @@ export function checkAchievements(data: AppData, profileId: string): Achievement
     profiles: data.profiles,
     profileId,
     hasExported: typeof window !== 'undefined' && !!localStorage.getItem(LAST_BACKUP_KEY),
+    challenges: data.challenges ?? [],
   };
 
   const newlyUnlocked: Achievement[] = [];

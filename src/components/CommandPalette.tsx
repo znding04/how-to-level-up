@@ -55,6 +55,7 @@ export default function CommandPalette() {
     { id: 'nav-calendar', label: 'Go to Calendar', icon: '📅', category: 'navigation', href: '/calendar' },
     { id: 'nav-skills', label: 'Go to Skills', icon: '⚡', category: 'navigation', href: '/skills' },
     { id: 'nav-insights', label: 'Go to Insights', icon: '🔮', category: 'navigation', href: '/insights' },
+    { id: 'nav-yearly', label: 'Go to Yearly Vision', icon: '⭐', category: 'navigation', href: '/yearly' },
     { id: 'nav-weekly', label: 'Go to Weekly Review', icon: '📋', category: 'navigation', href: '/weekly' },
     { id: 'nav-review', label: 'Go to Review', icon: '📊', category: 'navigation', href: '/review' },
     { id: 'nav-settings', label: 'Go to Settings', icon: '⚙️', category: 'navigation', href: '/settings' },

@@ -1,4 +1,4 @@
-import { AppData, DailyIntention, FocusSession, JournalEntry, NotificationSettings, Profile, WeeklyPlan } from './types';
+import { AppData, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, WeeklyPlan, YearlyVision } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -421,4 +421,129 @@ export function loadAllJournalEntries(profileId: string): JournalEntry[] {
   return entries
     .filter((e) => e.profileId === profileId)
     .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+// --- Habit Challenges ---
+
+export function loadChallenges(): HabitChallenge[] {
+  const data = loadData();
+  return data.challenges ?? [];
+}
+
+export function saveChallenge(challenge: HabitChallenge): void {
+  const data = loadData();
+  if (!data.challenges) data.challenges = [];
+  const idx = data.challenges.findIndex((c) => c.id === challenge.id);
+  if (idx >= 0) {
+    data.challenges[idx] = challenge;
+  } else {
+    data.challenges.push(challenge);
+  }
+  saveData(data);
+}
+
+export function deleteChallenge(id: string): void {
+  const data = loadData();
+  if (data.challenges) {
+    data.challenges = data.challenges.filter((c) => c.id !== id);
+    saveData(data);
+  }
+}
+
+export function getActiveChallenges(): HabitChallenge[] {
+  const challenges = loadChallenges();
+  return challenges.filter((c) => c.status === 'active');
+}
+
+export function getUpcomingChallenges(): HabitChallenge[] {
+  const today = todayString();
+  const challenges = loadChallenges();
+  return challenges.filter((c) => c.status === 'active' && c.startDate > today);
+}
+
+export function getChallengeCompletionRate(challengeId: string, date: string): number {
+  const data = loadData();
+  const challenge = data.challenges?.find((c) => c.id === challengeId);
+  if (!challenge) return 0;
+
+  // Days from startDate to min(endDate, date or today)
+  const today = todayString();
+  const endDay = date > today ? today : date;
+  if (endDay < challenge.startDate) return 100; // before start
+
+  // Count total challenge days up to endDay
+  const totalDays = countDaysBetween(challenge.startDate, endDay) + 1;
+  if (totalDays <= 0) return 0;
+
+  // Count days where ALL habits were completed (or skipped)
+  let perfectDays = 0;
+  for (let i = 0; i < totalDays; i++) {
+    const day = addDays(challenge.startDate, i);
+    const allDone = challenge.habitIds.every((habitId) => {
+      const habit = data.habits.find((h) => h.id === habitId);
+      if (!habit) return false;
+      return !!habit.completions[day] || habit.skippedDates?.includes(day);
+    });
+    if (allDone) perfectDays++;
+  }
+
+  return Math.round((perfectDays / totalDays) * 100);
+}
+
+function countDaysBetween(start: string, end: string): number {
+  const d1 = new Date(start);
+  const d2 = new Date(end);
+  return Math.round((d2.getTime() - d1.getTime()) / 86400000);
+}
+
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+export function checkAndCloseChallenge(id: string): void {
+  const data = loadData();
+  const challenge = data.challenges?.find((c) => c.id === id);
+  if (!challenge || challenge.status !== 'active') return;
+
+  const today = todayString();
+  if (today > challenge.endDate) {
+    // Challenge ended — mark as completed if good rate, else abandoned
+    const rate = getChallengeCompletionRate(id, challenge.endDate);
+    challenge.status = rate >= 50 ? 'completed' : 'abandoned';
+    saveData(data);
+  }
+}
+
+// --- Yearly Vision ---
+
+export function getCurrentYear(): number {
+  return new Date().getFullYear();
+}
+
+export function loadYearlyVision(profileId: string, year?: number): YearlyVision | null {
+  const data = loadData();
+  const vision = data.yearlyVision?.[profileId] ?? null;
+  // If year is specified and vision year doesn't match, return null
+  if (vision && year !== undefined && vision.year !== year) return null;
+  return vision;
+}
+
+export function saveYearlyVision(profileId: string, vision: YearlyVision): void {
+  const data = loadData();
+  if (!data.yearlyVision) data.yearlyVision = {};
+  data.yearlyVision[profileId] = vision;
+  saveData(data);
+}
+
+export function createDefaultYearlyVision(profileId: string, year: number): YearlyVision {
+  const now = new Date().toISOString();
+  return {
+    year,
+    identityStatements: [],
+    annualGoals: [],
+    createdAt: now,
+    updatedAt: now,
+  };
 }
