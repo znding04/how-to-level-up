@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { loadData, loadProfileData, loadHabitNotes } from '@/lib/storage';
-import { Habit, Goal, DailyLog, Skill } from '@/lib/types';
+import { loadData, loadProfileData, loadHabitNotes, loadSleepEntry } from '@/lib/storage';
+import { Habit, Goal, DailyLog, Skill, SleepQuality } from '@/lib/types';
 
 const MOOD_EMOJI: Record<number, string> = { 1: '😞', 2: '😕', 3: '😐', 4: '🙂', 5: '😄' };
 const ENERGY_EMOJI: Record<number, string> = { 1: '🪫', 2: '😴', 3: '😐', 4: '⚡', 5: '🔥' };
+const SLEEP_QUALITY_EMOJI: Record<SleepQuality, string> = { terrible: '😞', bad: '😕', okay: '😐', good: '🙂', great: '😊' };
 const DAY_HEADERS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -149,6 +150,12 @@ export default function CalendarPage() {
   const selectedHabits = selectedDate ? habits.filter((h) => (h.scheduledDays ?? [0, 1, 2, 3, 4, 5, 6]).includes(new Date(selectedDate).getDay())).map((h) => ({ ...h, completed: !!h.completions[selectedDate], skipped: (h.skippedDates ?? []).includes(selectedDate) })) : [];
   const selectedSessions = selectedDate ? (sessionsByDate[selectedDate] || []) : [];
   const selectedGoals = selectedDate ? getGoalsWithTargetDate(selectedDate) : [];
+  const selectedSleep = useMemo(() => {
+    if (!selectedDate) return null;
+    if (typeof window === 'undefined') return null;
+    const data = loadData();
+    return loadSleepEntry(selectedDate, data.activeProfileId);
+  }, [selectedDate]);
 
   function formatSelectedDate(dateKey: string): string {
     const [y, m, d] = dateKey.split('-').map(Number);
@@ -282,6 +289,9 @@ export default function CalendarPage() {
               <div className="space-y-1 text-sm">
                 <div>Mood: {MOOD_EMOJI[selectedLog.mood]} <span className="text-fg-muted">({selectedLog.mood}/5)</span></div>
                 <div>Energy: {ENERGY_EMOJI[selectedLog.energy]} <span className="text-fg-muted">({selectedLog.energy}/5)</span></div>
+                {selectedSleep && (
+                  <div>Sleep: {SLEEP_QUALITY_EMOJI[selectedSleep.quality]} <span className="text-fg-muted">{selectedSleep.hours}h</span></div>
+                )}
                 {selectedLog.notes && <div className="text-fg-secondary mt-1">{selectedLog.notes}</div>}
               </div>
             ) : (

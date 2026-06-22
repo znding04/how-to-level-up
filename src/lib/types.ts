@@ -149,6 +149,19 @@ export interface WeeklyPlan {
 
 export type JournalMood = 'great' | 'good' | 'okay' | 'bad' | 'terrible';
 
+export type SleepQuality = 'terrible' | 'bad' | 'okay' | 'good' | 'great';
+
+export interface SleepEntry {
+  id: string;
+  profileId: string;
+  date: string; // YYYY-MM-DD
+  hours: number; // decimal hours (e.g., 7.5)
+  quality: SleepQuality;
+  notes?: string; // optional, max 200 chars
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface JournalEntry {
   id: string;
   profileId: string;
@@ -211,4 +224,5 @@ export interface AppData {
   dailyIntentions?: Record<string, Record<string, DailyIntention>>; // profileId -> YYYY-MM-DD -> intention
   challenges?: HabitChallenge[]; // global list of challenges
   yearlyVision?: Record<string, YearlyVision>; // profileId -> yearly vision
+  sleepEntries?: SleepEntry[]; // sleep logs per profile
 }

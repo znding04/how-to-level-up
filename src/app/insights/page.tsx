@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries } from '@/lib/storage';
-import { AppData, Habit, Achievement, DailyIntention, FocusSession, JournalEntry } from '@/lib/types';
+import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries } from '@/lib/storage';
+import { AppData, Habit, Achievement, DailyIntention, FocusSession, JournalEntry, SleepQuality } from '@/lib/types';
 
 function getWeekDates(weeksAgo: number): string[] {
   const now = new Date();
@@ -173,6 +173,30 @@ export default function InsightsPage() {
   const energyEmojis = ['', '🪫', '😴', '😐', '⚡', '🔥'];
   const avgEnergy = weekLogs.length > 0
     ? weekLogs.reduce((sum, l) => sum + l.energy, 0) / weekLogs.length
+    : null;
+
+  // 5b. Sleep Snapshot
+  const sleepQualityEmojis: Record<SleepQuality, string> = {
+    terrible: '😞',
+    bad: '😕',
+    okay: '😐',
+    good: '🙂',
+    great: '😊',
+  };
+  const allSleepEntries = loadAllSleepEntries(fullData.activeProfileId);
+  const weekSleepEntries = allSleepEntries.filter((e) => thisWeekDates.includes(e.date));
+  const lastWeekSleepEntries = allSleepEntries.filter((e) => lastWeekDates.includes(e.date));
+  const avgSleepHours = weekSleepEntries.length > 0
+    ? weekSleepEntries.reduce((sum, e) => sum + e.hours, 0) / weekSleepEntries.length
+    : null;
+  const avgSleepQualityNum = weekSleepEntries.length > 0
+    ? weekSleepEntries.reduce((sum, e) => {
+        const q: SleepQuality[] = ['terrible', 'bad', 'okay', 'good', 'great'];
+        return sum + (q.indexOf(e.quality) + 1);
+      }, 0) / weekSleepEntries.length
+    : null;
+  const avgSleepHoursLastWeek = lastWeekSleepEntries.length > 0
+    ? lastWeekSleepEntries.reduce((sum, e) => sum + e.hours, 0) / lastWeekSleepEntries.length
     : null;
 
   // 6. Achievements Unlocked This Week
@@ -695,6 +719,32 @@ export default function InsightsPage() {
             <p className="text-sm text-fg-muted">No check-ins</p>
           )}
         </div>
+      </div>
+
+      {/* Sleep */}
+      <div className="bg-card border border-card-border rounded-xl p-4">
+        <h2 className="text-lg font-semibold mb-3">Sleep</h2>
+        {avgSleepHours !== null ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold">{avgSleepHours.toFixed(1)}h</p>
+                <p className="text-xs text-fg-secondary">avg per night</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl">{avgSleepQualityNum !== null ? sleepQualityEmojis[['terrible', 'bad', 'okay', 'good', 'great'][Math.round(avgSleepQualityNum) - 1] as SleepQuality] : '—'}</p>
+                <p className="text-xs text-fg-secondary">avg quality</p>
+              </div>
+            </div>
+            {avgSleepHoursLastWeek !== null && (
+              <p className="text-xs text-fg-muted text-center pt-2 border-t border-card-border">
+                {avgSleepHours > avgSleepHoursLastWeek ? '↑' : avgSleepHours < avgSleepHoursLastWeek ? '↓' : '—'} {Math.abs(avgSleepHours - avgSleepHoursLastWeek).toFixed(1)}h vs last week
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-fg-muted">No sleep logged this week</p>
+        )}
       </div>
 
       {/* Achievements Unlocked This Week */}

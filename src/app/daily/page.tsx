@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData, saveData, generateId, todayString, loadProfileData } from '@/lib/storage';
-import { DailyLog } from '@/lib/types';
+import { loadData, saveData, generateId, todayString, loadProfileData, loadSleepEntry, saveSleepEntry } from '@/lib/storage';
+import { DailyLog, SleepEntry, SleepQuality } from '@/lib/types';
 
 export default function DailyPage() {
   const today = todayString();
@@ -33,6 +33,27 @@ export default function DailyPage() {
     return todayLog ? todayLog.notes : '';
   });
 
+  // Sleep state
+  const [sleepHours, setSleepHours] = useState<number>(() => {
+    if (typeof window === 'undefined') return 7;
+    const data = loadData();
+    const entry = loadSleepEntry(today, data.activeProfileId);
+    return entry ? entry.hours : 7;
+  });
+  const [sleepQuality, setSleepQuality] = useState<SleepQuality>(() => {
+    if (typeof window === 'undefined') return 'okay';
+    const data = loadData();
+    const entry = loadSleepEntry(today, data.activeProfileId);
+    return entry ? entry.quality : 'okay';
+  });
+  const [sleepNotes, setSleepNotes] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    const data = loadData();
+    const entry = loadSleepEntry(today, data.activeProfileId);
+    return entry?.notes ?? '';
+  });
+  const [sleepSaved, setSleepSaved] = useState(false);
+
   function saveLog() {
     const data = loadData();
     const profileLogs = loadProfileData(data).dailyLogs;
@@ -54,6 +75,24 @@ export default function DailyPage() {
     setLogs(updatedProfileLogs);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  }
+
+  function saveSleep() {
+    const data = loadData();
+    const existing = loadSleepEntry(today, data.activeProfileId);
+    const entry: SleepEntry = {
+      id: existing?.id ?? generateId(),
+      profileId: data.activeProfileId,
+      date: today,
+      hours: sleepHours,
+      quality: sleepQuality,
+      notes: sleepNotes || undefined,
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    saveSleepEntry(entry);
+    setSleepSaved(true);
+    setTimeout(() => setSleepSaved(false), 2000);
   }
 
   function getCheckinStreak(logList: DailyLog[]): number {
@@ -109,6 +148,14 @@ export default function DailyPage() {
 
   const moodLabels = ['😞', '😐', '🙂', '😊', '🤩'];
   const energyLabels = ['🪫', '🔋', '⚡', '🔥', '💥'];
+  const sleepQualityLabels: SleepQuality[] = ['terrible', 'bad', 'okay', 'good', 'great'];
+  const sleepQualityEmojis: Record<SleepQuality, string> = {
+    terrible: '😞',
+    bad: '😕',
+    okay: '😐',
+    good: '🙂',
+    great: '😊',
+  };
 
   return (
     <div>
@@ -179,6 +226,72 @@ export default function DailyPage() {
           }`}
         >
           {saved ? 'Saved!' : 'Save Check-in'}
+        </button>
+      </div>
+
+      {/* Sleep Section */}
+      <div className="bg-card border border-card-border rounded-xl p-5 space-y-5 mt-6">
+        <h2 className="text-lg font-semibold">Sleep</h2>
+
+        <div>
+          <label className="text-sm text-fg-secondary mb-2 block">
+            Hours slept: <span className="text-foreground font-medium">{sleepHours}h</span>
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={24}
+            step={0.5}
+            value={sleepHours}
+            onChange={(e) => setSleepHours(Number(e.target.value))}
+            className="w-full accent-indigo-500"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm text-fg-secondary mb-2 block">Sleep quality</label>
+          <div className="flex gap-2" role="radiogroup" aria-label="Sleep quality">
+            {sleepQualityLabels.map((q) => (
+              <button
+                key={q}
+                onClick={() => setSleepQuality(q)}
+                aria-label={`Sleep quality ${q}`}
+                aria-checked={sleepQuality === q}
+                role="radio"
+                className={`flex-1 py-2 rounded-lg text-lg transition-colors ${
+                  sleepQuality === q
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-surface-dim text-fg-secondary hover:bg-surface'
+                }`}
+              >
+                {sleepQualityEmojis[q]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm text-fg-secondary mb-1 block">Notes (optional)</label>
+          <textarea
+            value={sleepNotes}
+            onChange={(e) => setSleepNotes(e.target.value.slice(0, 200))}
+            placeholder="Dream, interruptions, etc."
+            rows={2}
+            maxLength={200}
+            className="w-full bg-input border border-input-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+          />
+          <div className="text-xs text-fg-muted text-right mt-1">{sleepNotes.length}/200</div>
+        </div>
+
+        <button
+          onClick={saveSleep}
+          className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+            sleepSaved
+              ? 'bg-green-600 text-white'
+              : 'bg-indigo-600 hover:bg-indigo-500'
+          }`}
+        >
+          {sleepSaved ? 'Saved!' : 'Log Sleep'}
         </button>
       </div>
 

@@ -1,4 +1,4 @@
-import { AppData, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, WeeklyPlan, YearlyVision } from './types';
+import { AppData, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, SleepEntry, WeeklyPlan, YearlyVision } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -546,4 +546,42 @@ export function createDefaultYearlyVision(profileId: string, year: number): Year
     createdAt: now,
     updatedAt: now,
   };
+}
+
+// Sleep tracking helpers
+
+export function loadSleepEntry(date: string, profileId: string): SleepEntry | null {
+  const data = loadData();
+  const entries = data.sleepEntries ?? [];
+  return entries.find(e => e.date === date && e.profileId === profileId) ?? null;
+}
+
+export function saveSleepEntry(entry: SleepEntry): void {
+  const data = loadData();
+  if (!data.sleepEntries) data.sleepEntries = [];
+  const idx = data.sleepEntries.findIndex(e => e.id === entry.id);
+  if (idx >= 0) {
+    data.sleepEntries[idx] = entry;
+  } else {
+    data.sleepEntries.push(entry);
+  }
+  saveData(data);
+}
+
+export function loadSleepEntriesForWeek(weekStart: string, profileId: string): SleepEntry[] {
+  const data = loadData();
+  const entries = data.sleepEntries ?? [];
+  const start = new Date(weekStart);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  return entries.filter(e => {
+    if (e.profileId !== profileId) return false;
+    const d = new Date(e.date);
+    return d >= start && d <= end;
+  });
+}
+
+export function loadAllSleepEntries(profileId: string): SleepEntry[] {
+  const data = loadData();
+  return (data.sleepEntries ?? []).filter(e => e.profileId === profileId);
 }

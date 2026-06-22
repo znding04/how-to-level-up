@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
@@ -80,6 +80,12 @@ export default function DashboardPage() {
 
   // Daily check-in
   const todayLog = profileData.dailyLogs.find((l) => l.date === today);
+
+  // Sleep entry
+  const todaySleep = (() => {
+    const d = loadData();
+    return loadSleepEntry(today, d.activeProfileId);
+  })();
 
   // Goals progress
   const activeGoals = profileData.goals.filter((g) => g.status === 'active');
@@ -522,6 +528,27 @@ export default function DashboardPage() {
           ) : (
             <p className="text-fg-muted text-sm">
               Haven&apos;t checked in yet — tap to log today
+            </p>
+          )}
+        </div>
+      </Link>
+
+      {/* Sleep */}
+      <Link href="/daily" className="block">
+        <div className="bg-card border border-card-border hover:border-indigo-500/40 rounded-2xl p-4 transition-colors">
+          <h2 className="font-semibold flex items-center gap-2 mb-2">
+            😴 Sleep
+          </h2>
+          {todaySleep ? (
+            <div className="flex items-center gap-4 text-sm">
+              <span className="text-lg font-bold">{todaySleep.hours}h</span>
+              <span>
+                {{ terrible: '😞', bad: '😕', okay: '😐', good: '🙂', great: '😊' }[todaySleep.quality]}
+              </span>
+            </div>
+          ) : (
+            <p className="text-fg-muted text-sm">
+              No sleep logged yet — tap to log
             </p>
           )}
         </div>
