@@ -1,5 +1,15 @@
 # 变强 — Progress Log
 
+## 2026-06-22
+### Added: Sleep Tracking
+- **SleepEntry type** (`src/lib/types.ts`): New `SleepQuality = 'terrible' | 'bad' | 'okay' | 'good' | 'great'` type and `SleepEntry { id, date, profileId, hours, quality, wakeTime?, bedTime?, notes? }` interface; added `sleepEntries: SleepEntry[]` field on `AppData`
+- **Sleep storage helpers** (`src/lib/storage.ts`): `createDefaultSleepEntry()`, `saveSleepEntry()`, `loadSleepEntry()`, `loadAllSleepEntries()` — keyed by date and profileId
+- **Daily check-in** (`src/app/daily/page.tsx`): Added sleep section with hours input (numeric, step 0.5), sleep quality selector (5 emoji buttons: 😞😕😐🙂😊), optional notes textarea; auto-saves on change; shows green "Saved" badge when saved
+- **Dashboard** (`src/app/dashboard/page.tsx`): Sleep quick view card showing today's hours and quality emoji with week-over-week comparison
+- **Insights** (`src/app/insights/page.tsx`): Sleep section card showing average hours this week, average quality (emoji + numeric), and comparison to last week
+- **Calendar** (`src/app/calendar/page.tsx`): Daily Log section shows sleep hours and quality emoji for days with sleep entries
+- `npm run lint` — 0 errors, `npm run build` — success (26 static pages)
+
 ## 2026-06-21
 ### Added: Yearly Vision / Identity Planning
 - **YearlyVision types** (`src/lib/types.ts`): New `IdentityStatement { id, text, createdAt }`, `AnnualGoal { id, title, description?, targetSkills?, milestones, status, createdAt }`, and `YearlyVision { year, identityStatements, annualGoals, yearWord?, yearTheme?, createdAt, updatedAt }` interfaces; added `yearlyVision?: Record<string, YearlyVision>` to `AppData`
