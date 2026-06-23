@@ -1,4 +1,4 @@
-import { AppData, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, SleepEntry, WeeklyPlan, YearlyVision } from './types';
+import { AppData, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, QuickNote, SleepEntry, WeeklyPlan, YearlyVision } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -584,4 +584,57 @@ export function loadSleepEntriesForWeek(weekStart: string, profileId: string): S
 export function loadAllSleepEntries(profileId: string): SleepEntry[] {
   const data = loadData();
   return (data.sleepEntries ?? []).filter(e => e.profileId === profileId);
+}
+
+// --- Quick Notes ---
+
+export function createQuickNote(profileId: string, content: string): QuickNote {
+  const now = new Date().toISOString();
+  return {
+    id: generateId(),
+    profileId,
+    content: content.trim(),
+    pinned: false,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function saveQuickNote(note: QuickNote): void {
+  const data = loadData();
+  if (!data.quickNotes) data.quickNotes = [];
+  const idx = data.quickNotes.findIndex(n => n.id === note.id);
+  if (idx >= 0) {
+    data.quickNotes[idx] = { ...note, updatedAt: new Date().toISOString() };
+  } else {
+    data.quickNotes.push(note);
+  }
+  saveData(data);
+}
+
+export function deleteQuickNote(id: string): void {
+  const data = loadData();
+  if (data.quickNotes) {
+    data.quickNotes = data.quickNotes.filter(n => n.id !== id);
+    saveData(data);
+  }
+}
+
+export function loadQuickNotes(profileId: string): QuickNote[] {
+  const data = loadData();
+  const notes = (data.quickNotes ?? []).filter(n => n.profileId === profileId);
+  // Sort: pinned first, then by updatedAt descending
+  return notes.sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    return b.updatedAt.localeCompare(a.updatedAt);
+  });
+}
+
+export function togglePinQuickNote(id: string): void {
+  const data = loadData();
+  const note = data.quickNotes?.find(n => n.id === id);
+  if (!note) return;
+  note.pinned = !note.pinned;
+  note.updatedAt = new Date().toISOString();
+  saveData(data);
 }

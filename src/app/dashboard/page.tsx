@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry, loadQuickNotes } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
@@ -119,6 +119,9 @@ export default function DashboardPage() {
 
   // Active challenges
   const activeChallenges = getActiveChallenges();
+
+  // Quick notes - most recent 3
+  const quickNotesList = loadQuickNotes(data.activeProfileId).slice(0, 3);
 
   // Streak - consecutive days with at least one habit completed
   let streak = 0;
@@ -714,6 +717,32 @@ export default function DashboardPage() {
             <p className="text-xs text-fg-muted mb-1">
               {visionGoals.length} goal{visionGoals.length !== 1 ? 's' : ''} · {visionGoalMilestones > 0 ? `${visionCompletedMilestones}/${visionGoalMilestones} milestones` : 'no milestones yet'}
             </p>
+          </div>
+        )}
+      </div>
+      </Link>
+
+      {/* Quick Notes */}
+      <Link href="/notes" className="block">
+      <div className="bg-card border border-card-border hover:border-blue-500/40 rounded-2xl p-4 transition-colors">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold flex items-center gap-2">
+            📝 Quick Notes
+          </h2>
+          <span className="text-sm text-blue-400">
+            View All →
+          </span>
+        </div>
+        {quickNotesList.length === 0 ? (
+          <p className="text-fg-muted text-sm">No notes yet</p>
+        ) : (
+          <div className="space-y-2">
+            {quickNotesList.map((n) => (
+              <p key={n.id} className="text-sm text-foreground truncate">
+                {n.pinned && <span className="mr-1">📌</span>}
+                {n.content.length > 60 ? n.content.slice(0, 60) + '…' : n.content}
+              </p>
+            ))}
           </div>
         )}
       </div>

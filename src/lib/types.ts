@@ -183,6 +183,15 @@ export interface HabitChallenge {
   createdAt: string;
 }
 
+export interface QuickNote {
+  id: string;
+  profileId: string;
+  content: string; // max 500 chars
+  pinned: boolean;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+}
+
 export interface IdentityStatement {
   id: string;
   text: string;       // max 100 chars
@@ -225,4 +234,5 @@ export interface AppData {
   challenges?: HabitChallenge[]; // global list of challenges
   yearlyVision?: Record<string, YearlyVision>; // profileId -> yearly vision
   sleepEntries?: SleepEntry[]; // sleep logs per profile
+  quickNotes?: QuickNote[]; // scratchpad notes
 }
