@@ -1,5 +1,15 @@
 # 变强 — Progress Log
 
+## 2026-06-23
+### Added: Quick Notes / Scratchpad
+- **QuickNote type** (`src/lib/types.ts`): New `QuickNote { id, profileId, content (max 500 chars), pinned, createdAt, updatedAt }` interface; added `quickNotes: QuickNote[]` field on `AppData`
+- **Storage helpers** (`src/lib/storage.ts`): `createQuickNote()`, `saveQuickNote()`, `deleteQuickNote()`, `loadQuickNotes()` (sorted by pinned first then updatedAt desc), `togglePinQuickNote()`
+- **Notes page** (`src/app/notes/page.tsx`): New `/notes` route with "+" FAB to add notes, inline editing (click edit to enter edit mode with auto-focused textarea), pin/unpin toggle (📌/📍), delete with confirmation dialog, Cmd+Enter to save, Esc to cancel; notes sorted with pinned at top; empty state with call-to-action
+- **TabNav**: Added "Notes" tab between Home and Habits with document SVG icon
+- **Dashboard card**: Quick Notes card showing 3 most recent notes with pinned indicator, truncation at 60 chars, "View All" link to `/notes`
+- Profile-aware: notes are scoped to the active profile
+- `npm run lint` — 0 errors, `npm run build` — success (27 static pages including `/notes`)
+
 ## 2026-06-22
 ### Added: Sleep Tracking
 - **SleepEntry type** (`src/lib/types.ts`): New `SleepQuality = 'terrible' | 'bad' | 'okay' | 'good' | 'great'` type and `SleepEntry { id, date, profileId, hours, quality, wakeTime?, bedTime?, notes? }` interface; added `sleepEntries: SleepEntry[]` field on `AppData`
