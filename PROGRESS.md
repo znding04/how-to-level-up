@@ -1,5 +1,16 @@
 # 变强 — Progress Log
 
+## 2026-06-24
+### Added: Body Metrics / Weight Tracker
+- **BodyMetricEntry type** (`src/lib/types.ts`): New `BodyMetricEntry { id, profileId, date, weight (kg), bodyFat (%), notes, createdAt, updatedAt }` interface; added `bodyMetrics?: BodyMetricEntry[]` field on `AppData`
+- **Storage helpers** (`src/lib/storage.ts`): `createDefaultBodyMetricEntry()`, `loadBodyMetricEntry()`, `saveBodyMetricEntry()`, `deleteBodyMetricEntry()`, `loadAllBodyMetricEntries()` — keyed by date and profileId
+- **Body page** (`src/app/body/page.tsx`): New `/body` route with today's entry card (weight in kg, body fat %, notes), auto-save on blur, stats overview card (current weight, total change, weekly avg), full history list with delete confirmation dialog, empty state
+- **TabNav**: Added "Body" tab with scale/body icon between Daily and Focus tabs
+- **Dashboard card**: Body Metrics card showing current weight, total change from first entry (green/red arrow), and link to `/body`
+- **Insights integration** (`src/app/insights/page.tsx`): Body Metrics section with current weight, weekly average, total change, and week-over-week trend
+- **Command palette**: Added "Go to Body Metrics" navigation action
+- `npm run lint` — 0 errors, `npm run build` — success (28 static pages including `/body`)
+
 ## 2026-06-23
 ### Added: Quick Notes / Scratchpad
 - **QuickNote type** (`src/lib/types.ts`): New `QuickNote { id, profileId, content (max 500 chars), pinned, createdAt, updatedAt }` interface; added `quickNotes: QuickNote[]` field on `AppData`

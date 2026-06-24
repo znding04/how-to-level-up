@@ -1,4 +1,4 @@
-import { AppData, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, QuickNote, SleepEntry, WeeklyPlan, YearlyVision } from './types';
+import { AppData, BodyMetricEntry, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, QuickNote, SleepEntry, WeeklyPlan, YearlyVision } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -637,4 +637,54 @@ export function togglePinQuickNote(id: string): void {
   note.pinned = !note.pinned;
   note.updatedAt = new Date().toISOString();
   saveData(data);
+}
+
+// --- Body Metrics ---
+
+export function createDefaultBodyMetricEntry(profileId: string, date: string): BodyMetricEntry {
+  const now = new Date().toISOString();
+  return {
+    id: generateId(),
+    profileId,
+    date,
+    weight: undefined,
+    bodyFat: undefined,
+    notes: '',
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function loadBodyMetricEntry(date: string, profileId: string): BodyMetricEntry | null {
+  const data = loadData();
+  const entries = data.bodyMetrics ?? [];
+  return entries.find(e => e.date === date && e.profileId === profileId) ?? null;
+}
+
+export function saveBodyMetricEntry(entry: BodyMetricEntry): void {
+  const data = loadData();
+  if (!data.bodyMetrics) data.bodyMetrics = [];
+  const idx = data.bodyMetrics.findIndex(e => e.id === entry.id);
+  if (idx >= 0) {
+    data.bodyMetrics[idx] = { ...entry, updatedAt: new Date().toISOString() };
+  } else {
+    data.bodyMetrics.push(entry);
+  }
+  saveData(data);
+}
+
+export function deleteBodyMetricEntry(id: string): void {
+  const data = loadData();
+  if (data.bodyMetrics) {
+    data.bodyMetrics = data.bodyMetrics.filter(e => e.id !== id);
+    saveData(data);
+  }
+}
+
+export function loadAllBodyMetricEntries(profileId: string): BodyMetricEntry[] {
+  const data = loadData();
+  const entries = data.bodyMetrics ?? [];
+  return entries
+    .filter(e => e.profileId === profileId)
+    .sort((a, b) => b.date.localeCompare(a.date));
 }

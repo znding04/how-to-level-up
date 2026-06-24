@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry, loadQuickNotes } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry, loadQuickNotes, loadAllBodyMetricEntries } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
@@ -86,6 +86,17 @@ export default function DashboardPage() {
     const d = loadData();
     return loadSleepEntry(today, d.activeProfileId);
   })();
+
+  // Body metrics entry
+  const allBodyMetrics = (() => {
+    const d = loadData();
+    return loadAllBodyMetricEntries(d.activeProfileId);
+  })();
+  const currentWeight = allBodyMetrics[0]?.weight;
+  const firstWeight = allBodyMetrics[allBodyMetrics.length - 1]?.weight;
+  const weightChange = currentWeight != null && firstWeight != null && allBodyMetrics.length > 1
+    ? +(currentWeight - firstWeight).toFixed(1)
+    : null;
 
   // Goals progress
   const activeGoals = profileData.goals.filter((g) => g.status === 'active');
@@ -552,6 +563,29 @@ export default function DashboardPage() {
           ) : (
             <p className="text-fg-muted text-sm">
               No sleep logged yet — tap to log
+            </p>
+          )}
+        </div>
+      </Link>
+
+      {/* Body Metrics */}
+      <Link href="/body" className="block">
+        <div className="bg-card border border-card-border hover:border-teal-500/40 rounded-2xl p-4 transition-colors">
+          <h2 className="font-semibold flex items-center gap-2 mb-2">
+            ⚖️ Body
+          </h2>
+          {currentWeight != null ? (
+            <div className="flex items-center gap-4 text-sm">
+              <span className="text-lg font-bold">{currentWeight} kg</span>
+              {weightChange != null && (
+                <span className={`text-sm font-medium ${weightChange < 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {weightChange > 0 ? '↑' : '↓'} {Math.abs(weightChange)} kg
+                </span>
+              )}
+            </div>
+          ) : (
+            <p className="text-fg-muted text-sm">
+              No weight logged yet — tap to track
             </p>
           )}
         </div>

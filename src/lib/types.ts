@@ -218,6 +218,18 @@ export interface YearlyVision {
   updatedAt: string;
 }
 
+
+export interface BodyMetricEntry {
+  id: string;
+  profileId: string;
+  date: string; // YYYY-MM-DD
+  weight?: number;    // in kg
+  bodyFat?: number;   // percentage, 0-100
+  notes?: string;     // optional notes, max 200 chars
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   profiles: Profile[];
   activeProfileId: string;
@@ -235,4 +247,5 @@ export interface AppData {
   yearlyVision?: Record<string, YearlyVision>; // profileId -> yearly vision
   sleepEntries?: SleepEntry[]; // sleep logs per profile
   quickNotes?: QuickNote[]; // scratchpad notes
+  bodyMetrics?: BodyMetricEntry[]; // body weight/fat tracking
 }

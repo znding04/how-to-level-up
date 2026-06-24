@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries } from '@/lib/storage';
+import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries, loadAllBodyMetricEntries } from '@/lib/storage';
 import { AppData, Habit, Achievement, DailyIntention, FocusSession, JournalEntry, SleepQuality } from '@/lib/types';
 
 function getWeekDates(weeksAgo: number): string[] {
@@ -197,6 +197,29 @@ export default function InsightsPage() {
     : null;
   const avgSleepHoursLastWeek = lastWeekSleepEntries.length > 0
     ? lastWeekSleepEntries.reduce((sum, e) => sum + e.hours, 0) / lastWeekSleepEntries.length
+    : null;
+
+  // 5c. Body Metrics Snapshot
+  const allBodyEntries = loadAllBodyMetricEntries(fullData.activeProfileId);
+  const weightsWithValues = allBodyEntries.filter(e => e.weight != null && e.weight > 0);
+  const currentBodyWeight = weightsWithValues[0]?.weight;
+  const firstBodyWeight = weightsWithValues[weightsWithValues.length - 1]?.weight;
+  const totalWeightChange = currentBodyWeight != null && firstBodyWeight != null && weightsWithValues.length > 1
+    ? +(currentBodyWeight - firstBodyWeight).toFixed(1)
+    : null;
+  // Weekly average
+  const bodyWeekStart = getWeekDates(0)[0];
+  const bodyWeekEnd = getWeekDates(0)[6];
+  const weekBodyEntries = allBodyEntries.filter(e => e.date >= bodyWeekStart && e.date <= bodyWeekEnd && e.weight != null && e.weight > 0);
+  const weeklyBodyAvg = weekBodyEntries.length > 0
+    ? +(weekBodyEntries.reduce((sum, e) => sum + (e.weight ?? 0), 0) / weekBodyEntries.length).toFixed(1)
+    : null;
+  // Last week average
+  const lastWeekStart = getWeekDates(1)[0];
+  const lastWeekEnd = getWeekDates(1)[6];
+  const lastWeekBodyEntries = allBodyEntries.filter(e => e.date >= lastWeekStart && e.date <= lastWeekEnd && e.weight != null && e.weight > 0);
+  const lastWeekBodyAvg = lastWeekBodyEntries.length > 0
+    ? +(lastWeekBodyEntries.reduce((sum, e) => sum + (e.weight ?? 0), 0) / lastWeekBodyEntries.length).toFixed(1)
     : null;
 
   // 6. Achievements Unlocked This Week
@@ -744,6 +767,39 @@ export default function InsightsPage() {
           </div>
         ) : (
           <p className="text-sm text-fg-muted">No sleep logged this week</p>
+        )}
+      </div>
+
+      {/* Body Metrics */}
+      <div className="bg-card border border-card-border rounded-xl p-4">
+        <h2 className="text-lg font-semibold mb-3">Body Metrics</h2>
+        {currentBodyWeight != null ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold">{currentBodyWeight} kg</p>
+                <p className="text-xs text-fg-secondary">current weight</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold">{weeklyBodyAvg != null ? `${weeklyBodyAvg} kg` : '—'}</p>
+                <p className="text-xs text-fg-secondary">weekly avg</p>
+              </div>
+            </div>
+            {totalWeightChange != null && (
+              <p className="text-xs text-fg-muted text-center pt-2 border-t border-card-border">
+                Total change: <span className={totalWeightChange < 0 ? 'text-green-400' : 'text-red-400'}>
+                  {totalWeightChange > 0 ? '+' : ''}{totalWeightChange} kg
+                </span>
+              </p>
+            )}
+            {lastWeekBodyAvg != null && weeklyBodyAvg != null && (
+              <p className="text-xs text-fg-muted text-center">
+                {weeklyBodyAvg > lastWeekBodyAvg ? '↑' : weeklyBodyAvg < lastWeekBodyAvg ? '↓' : '—'} {Math.abs(+weeklyBodyAvg - +lastWeekBodyAvg).toFixed(1)} kg vs last week
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-fg-muted">No weight logged yet</p>
         )}
       </div>
 

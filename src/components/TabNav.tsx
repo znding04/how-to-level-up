@@ -12,6 +12,7 @@ const tabs = [
   { href: '/achievements', label: 'Awards' },
   { href: '/challenges', label: 'Challenges' },
   { href: '/daily', label: 'Daily' },
+  { href: '/body', label: 'Body' },
   { href: '/focus', label: 'Focus' },
   { href: '/calendar', label: 'Calendar' },
   { href: '/skills', label: 'Skills' },
@@ -47,6 +48,8 @@ function TabIcon({ href }: { href: string }) {
       return <svg xmlns="http://www.w3.org/2000/svg" {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>;
     case '/focus':
       return <svg xmlns="http://www.w3.org/2000/svg" {...props}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
+    case '/body':
+      return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M6 3h12l-1.5 9H7.5L6 3z" /><path d="M4.5 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /><path d="M19.5 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /><path d="M9 21h6" /><path d="M12 15v6" /></svg>;
     case '/insights':
       return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M9 18h6" /><path d="M10 22h4" /><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" /></svg>;
     case '/journal':
