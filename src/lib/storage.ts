@@ -1,4 +1,4 @@
-import { AppData, BodyMetricEntry, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, QuickNote, SleepEntry, WeeklyPlan, YearlyVision } from './types';
+import { AppData, BodyMetricEntry, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, QuickNote, SleepEntry, WaterEntry, WeeklyPlan, YearlyVision } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -687,4 +687,84 @@ export function loadAllBodyMetricEntries(profileId: string): BodyMetricEntry[] {
   return entries
     .filter(e => e.profileId === profileId)
     .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+// --- Water Intake ---
+
+const DEFAULT_WATER_GOAL_ML = 2500;
+const WATER_GOAL_KEY = 'water-goal-ml';
+
+export function getWaterGoal(): number {
+  if (typeof window === 'undefined') return DEFAULT_WATER_GOAL_ML;
+  const raw = localStorage.getItem(WATER_GOAL_KEY);
+  if (!raw) return DEFAULT_WATER_GOAL_ML;
+  const parsed = parseInt(raw, 10);
+  return isNaN(parsed) ? DEFAULT_WATER_GOAL_ML : parsed;
+}
+
+export function setWaterGoal(goalMl: number): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(WATER_GOAL_KEY, String(goalMl));
+}
+
+export function createDefaultWaterEntry(profileId: string, date: string): WaterEntry {
+  const now = new Date().toISOString();
+  return {
+    id: generateId(),
+    profileId,
+    date,
+    amountMl: 0,
+    notes: '',
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function loadWaterEntry(date: string, profileId: string): WaterEntry | null {
+  const data = loadData();
+  const entries = data.waterEntries ?? [];
+  return entries.find(e => e.date === date && e.profileId === profileId) ?? null;
+}
+
+export function saveWaterEntry(entry: WaterEntry): void {
+  const data = loadData();
+  if (!data.waterEntries) data.waterEntries = [];
+  const idx = data.waterEntries.findIndex(e => e.id === entry.id);
+  if (idx >= 0) {
+    data.waterEntries[idx] = { ...entry, updatedAt: new Date().toISOString() };
+  } else {
+    data.waterEntries.push(entry);
+  }
+  saveData(data);
+}
+
+export function loadAllWaterEntries(profileId: string): WaterEntry[] {
+  const data = loadData();
+  const entries = data.waterEntries ?? [];
+  return entries
+    .filter(e => e.profileId === profileId)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export function deleteWaterEntry(id: string): void {
+  const data = loadData();
+  if (data.waterEntries) {
+    data.waterEntries = data.waterEntries.filter(e => e.id !== id);
+    saveData(data);
+  }
+}
+
+export function addWaterEntry(profileId: string, date: string, amountMl: number): WaterEntry {
+  const data = loadData();
+  if (!data.waterEntries) data.waterEntries = [];
+  // Find or create entry for this date
+  let entry = data.waterEntries.find(e => e.date === date && e.profileId === profileId);
+  if (!entry) {
+    entry = createDefaultWaterEntry(profileId, date);
+    data.waterEntries.push(entry);
+  }
+  entry.amountMl += amountMl;
+  entry.updatedAt = new Date().toISOString();
+  saveData(data);
+  return entry;
 }

@@ -230,6 +230,16 @@ export interface BodyMetricEntry {
   updatedAt: string;
 }
 
+export interface WaterEntry {
+  id: string;
+  profileId: string;
+  date: string; // YYYY-MM-DD
+  amountMl: number;
+  notes?: string;     // optional notes, max 100 chars
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   profiles: Profile[];
   activeProfileId: string;
@@ -248,4 +258,5 @@ export interface AppData {
   sleepEntries?: SleepEntry[]; // sleep logs per profile
   quickNotes?: QuickNote[]; // scratchpad notes
   bodyMetrics?: BodyMetricEntry[]; // body weight/fat tracking
+  waterEntries?: WaterEntry[]; // water intake tracking
 }

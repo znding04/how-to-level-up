@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry, loadQuickNotes, loadAllBodyMetricEntries } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry, loadQuickNotes, loadAllBodyMetricEntries, loadWaterEntry, getWaterGoal, addWaterEntry } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
@@ -97,6 +97,22 @@ export default function DashboardPage() {
   const weightChange = currentWeight != null && firstWeight != null && allBodyMetrics.length > 1
     ? +(currentWeight - firstWeight).toFixed(1)
     : null;
+
+  // Water intake
+  const waterGoal = getWaterGoal();
+  const [todayWater, setTodayWater] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0;
+    const d = loadData();
+    const entry = loadWaterEntry(today, d.activeProfileId);
+    return entry?.amountMl ?? 0;
+  });
+  const waterPercent = Math.min(100, Math.round((todayWater / waterGoal) * 100));
+
+  function handleWaterAdd(ml: number) {
+    const d = loadData();
+    addWaterEntry(d.activeProfileId, today, ml);
+    setTodayWater(prev => prev + ml);
+  }
 
   // Goals progress
   const activeGoals = profileData.goals.filter((g) => g.status === 'active');
@@ -586,6 +602,43 @@ export default function DashboardPage() {
           ) : (
             <p className="text-fg-muted text-sm">
               No weight logged yet — tap to track
+            </p>
+          )}
+        </div>
+      </Link>
+
+      {/* Hydration */}
+      <Link href="/hydration" className="block">
+        <div className="bg-card border border-card-border hover:border-blue-500/40 rounded-2xl p-4 transition-colors">
+          <h2 className="font-semibold flex items-center gap-2 mb-2">
+            💧 Hydration
+          </h2>
+          {todayWater > 0 || waterGoal ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-fg-secondary">
+                  {todayWater} / {waterGoal} ml
+                </span>
+                <span className={`text-sm font-bold ${waterPercent >= 100 ? 'text-blue-400' : 'text-fg-secondary'}`}>
+                  {waterPercent}%
+                </span>
+              </div>
+              <div className="w-full bg-bar-track rounded-full h-2">
+                <div
+                  className="bg-blue-500 h-2 rounded-full transition-all"
+                  style={{ width: `${waterPercent}%` }}
+                />
+              </div>
+              <button
+                onClick={(e) => { e.preventDefault(); handleWaterAdd(250); }}
+                className="mt-1 px-3 py-1 rounded-lg bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-medium hover:bg-blue-500/30 transition-colors"
+              >
+                +250ml
+              </button>
+            </div>
+          ) : (
+            <p className="text-fg-muted text-sm">
+              No water logged yet — tap to start
             </p>
           )}
         </div>

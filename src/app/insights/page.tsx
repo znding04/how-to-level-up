@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries, loadAllBodyMetricEntries } from '@/lib/storage';
+import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries, loadAllBodyMetricEntries, loadAllWaterEntries, getWaterGoal } from '@/lib/storage';
 import { AppData, Habit, Achievement, DailyIntention, FocusSession, JournalEntry, SleepQuality } from '@/lib/types';
 
 function getWeekDates(weeksAgo: number): string[] {
@@ -220,6 +220,22 @@ export default function InsightsPage() {
   const lastWeekBodyEntries = allBodyEntries.filter(e => e.date >= lastWeekStart && e.date <= lastWeekEnd && e.weight != null && e.weight > 0);
   const lastWeekBodyAvg = lastWeekBodyEntries.length > 0
     ? +(lastWeekBodyEntries.reduce((sum, e) => sum + (e.weight ?? 0), 0) / lastWeekBodyEntries.length).toFixed(1)
+    : null;
+
+  // 5d. Hydration Snapshot
+  const waterGoal = getWaterGoal();
+  const allWaterEntries = loadAllWaterEntries(fullData.activeProfileId);
+  const thisWeekWaterDates = getWeekDates(0);
+  const lastWeekWaterDates = getWeekDates(1);
+  const thisWeekWaterEntries = allWaterEntries.filter(e => thisWeekWaterDates.includes(e.date));
+  const lastWeekWaterEntries = allWaterEntries.filter(e => lastWeekWaterDates.includes(e.date));
+  const thisWeekWaterTotal = thisWeekWaterEntries.reduce((sum, e) => sum + e.amountMl, 0);
+  const thisWeekWaterDays = thisWeekWaterEntries.filter(e => e.amountMl >= waterGoal).length;
+  const lastWeekWaterAvg = lastWeekWaterEntries.length > 0
+    ? Math.round(lastWeekWaterEntries.reduce((sum, e) => sum + e.amountMl, 0) / lastWeekWaterEntries.filter(e => e.amountMl > 0).length)
+    : null;
+  const thisWeekWaterAvg = thisWeekWaterEntries.filter(e => e.amountMl > 0).length > 0
+    ? Math.round(thisWeekWaterTotal / thisWeekWaterEntries.filter(e => e.amountMl > 0).length)
     : null;
 
   // 6. Achievements Unlocked This Week
@@ -800,6 +816,37 @@ export default function InsightsPage() {
           </div>
         ) : (
           <p className="text-sm text-fg-muted">No weight logged yet</p>
+        )}
+      </div>
+
+      {/* Hydration */}
+      <div className="bg-card border border-card-border rounded-xl p-4">
+        <h2 className="text-lg font-semibold mb-3">Hydration</h2>
+        {allWaterEntries.length > 0 ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold">
+                  {thisWeekWaterAvg != null ? `${thisWeekWaterAvg}ml` : '—'}
+                </p>
+                <p className="text-xs text-fg-secondary">daily avg</p>
+              </div>
+              <div className="text-center">
+                <p className={`text-2xl font-bold ${thisWeekWaterDays >= 4 ? 'text-blue-400' : 'text-fg-secondary'}`}>
+                  {thisWeekWaterDays}/7
+                </p>
+                <p className="text-xs text-fg-secondary">days on goal</p>
+              </div>
+            </div>
+            {lastWeekWaterAvg != null && thisWeekWaterAvg != null && (
+              <p className="text-xs text-fg-muted text-center pt-2 border-t border-card-border">
+                {thisWeekWaterAvg > lastWeekWaterAvg ? '↑' : thisWeekWaterAvg < lastWeekWaterAvg ? '↓' : '—'}{' '}
+                {Math.abs(thisWeekWaterAvg - lastWeekWaterAvg)}ml vs last week
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-fg-muted">No water logged yet</p>
         )}
       </div>
 
