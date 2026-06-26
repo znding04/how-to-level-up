@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { loadData, todayString, loadWaterEntry, saveWaterEntry, loadAllWaterEntries, deleteWaterEntry, createDefaultWaterEntry, getWaterGoal, setWaterGoal, addWaterEntry } from '@/lib/storage';
+import { loadData, todayString, loadWaterEntry, loadAllWaterEntries, deleteWaterEntry, getWaterGoal, setWaterGoal, addWaterEntry } from '@/lib/storage';
 import { WaterEntry } from '@/lib/types';
 
 function formatDate(dateStr: string): string {

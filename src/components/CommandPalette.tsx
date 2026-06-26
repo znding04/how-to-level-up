@@ -47,9 +47,11 @@ export default function CommandPalette() {
   const allCommands: CommandAction[] = [
     // Navigation
     { id: 'nav-dashboard', label: 'Go to Dashboard', icon: '🏠', category: 'navigation', href: '/dashboard' },
+    { id: 'nav-notes', label: 'Go to Quick Notes', icon: '📝', category: 'navigation', href: '/notes' },
     { id: 'nav-habits', label: 'Go to Habits', icon: '🔄', category: 'navigation', href: '/habits' },
     { id: 'nav-goals', label: 'Go to Goals', icon: '🎯', category: 'navigation', href: '/goals' },
     { id: 'nav-achievements', label: 'Go to Achievements', icon: '🏆', category: 'navigation', href: '/achievements' },
+    { id: 'nav-challenges', label: 'Go to Challenges', icon: '🎯', category: 'navigation', href: '/challenges' },
     { id: 'nav-daily', label: 'Go to Daily Check-in', icon: '📝', category: 'navigation', href: '/daily' },
     { id: 'nav-focus', label: 'Go to Focus', icon: '⏱️', category: 'navigation', href: '/focus' },
     { id: 'nav-calendar', label: 'Go to Calendar', icon: '📅', category: 'navigation', href: '/calendar' },

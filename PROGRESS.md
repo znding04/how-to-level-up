@@ -1,5 +1,26 @@
 # 变强 — Progress Log
 
+## 2026-06-25
+### Added: Habit Challenges System
+- **HabitChallenge type** (`src/lib/types.ts`): New `HabitChallenge { id, name, description?, habitIds, startDate, endDate, status: 'active'|'completed'|'abandoned', createdAt }` interface; added `challenges?: HabitChallenge[]` field on `AppData`
+- **Challenge storage helpers** (`src/lib/storage.ts`): `loadChallenges()`, `saveChallenge()`, `getActiveChallenges()`, `getUpcomingChallenges()`, `getChallengeCompletionRate()` — completion rate = % of scheduled habit days that were completed or skipped
+- **Challenges page** (`src/app/challenges/page.tsx`): New `/challenges` route with create form (name, description, habit multi-select, date range), active/past challenge cards with completion progress bars, abandon action for active challenges
+- **Challenge detail page** (`src/app/challenges/detail/page.tsx`): New `/challenges/detail?id=...` route with stats row (days elapsed, days left, habit count), overall completion progress bar, 8-week activity heatmap (color-coded by completion rate), per-habit breakdown with progress bars, and auto-status update when challenge ends (≥50% → completed, <50% → abandoned)
+- **TabNav**: Added "Challenges" tab with target/dart icon between Achievements and Daily
+- **Dashboard card**: Challenges card showing active challenge count, current completion rate, and link to `/challenges`
+- **Command palette**: Added "Go to Challenges" navigation action
+- Profile-aware: challenges are stored globally (not per-profile)
+
+### Added: Water Intake Tracking
+- **WaterEntry type** (`src/lib/types.ts`): New `WaterEntry { id, profileId, date, amountMl, entries: {id, amountMl, time}[]?, createdAt, updatedAt }` interface; added `waterEntries?: WaterEntry[]` field on `AppData`
+- **Water storage helpers** (`src/lib/storage.ts`): `getWaterGoal()`, `setWaterGoal()` (localStorage), `createDefaultWaterEntry()`, `loadWaterEntry()`, `saveWaterEntry()`, `loadAllWaterEntries()`, `deleteWaterEntry()`, `addWaterEntry()` — entries stored per profile and date
+- **Hydration page** (`src/app/hydration/page.tsx`): New `/hydration` route with circular progress ring (today's intake vs goal), quick-add buttons (+250ml, +500ml, +750ml), custom amount input, goal editor, this-week stats (total, daily avg, day streak), and recent history with per-day progress bars
+- **TabNav**: Added "Water" tab with droplet icon between Body and Focus
+- **Dashboard card**: Hydration card showing today's intake, goal, and progress bar with link to `/hydration`
+- **Insights integration** (`src/app/insights/page.tsx`): Water Metrics section showing this week's total, daily average, days-at-goal count (vs last week comparison)
+- **Command palette**: Added "Go to Hydration" navigation action
+- Profile-aware: water entries are scoped to the active profile
+
 ## 2026-06-24
 ### Added: Body Metrics / Weight Tracker
 - **BodyMetricEntry type** (`src/lib/types.ts`): New `BodyMetricEntry { id, profileId, date, weight (kg), bodyFat (%), notes, createdAt, updatedAt }` interface; added `bodyMetrics?: BodyMetricEntry[]` field on `AppData`
