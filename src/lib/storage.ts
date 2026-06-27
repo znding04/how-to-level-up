@@ -1,4 +1,4 @@
-import { AppData, BodyMetricEntry, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, QuickNote, SleepEntry, WaterEntry, WeeklyPlan, YearlyVision } from './types';
+import { AppData, BodyMetricEntry, BookEntry, BookStatus, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, QuickNote, SleepEntry, WaterEntry, WeeklyPlan, YearlyVision } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -767,4 +767,60 @@ export function addWaterEntry(profileId: string, date: string, amountMl: number)
   entry.updatedAt = new Date().toISOString();
   saveData(data);
   return entry;
+}
+
+// --- Books / Reading List ---
+
+export function createBook(book: Omit<BookEntry, 'id' | 'createdAt' | 'updatedAt'>): BookEntry {
+  const now = new Date().toISOString();
+  const entry: BookEntry = {
+    ...book,
+    id: generateId(),
+    createdAt: now,
+    updatedAt: now,
+  };
+  const data = loadData();
+  if (!data.books) data.books = [];
+  data.books.push(entry);
+  saveData(data);
+  return entry;
+}
+
+export function saveBook(book: BookEntry): void {
+  const data = loadData();
+  if (!data.books) data.books = [];
+  const idx = data.books.findIndex(b => b.id === book.id);
+  if (idx >= 0) {
+    data.books[idx] = { ...book, updatedAt: new Date().toISOString() };
+  } else {
+    data.books.push({ ...book, updatedAt: new Date().toISOString() });
+  }
+  saveData(data);
+}
+
+export function deleteBook(id: string): void {
+  const data = loadData();
+  if (data.books) {
+    data.books = data.books.filter(b => b.id !== id);
+    saveData(data);
+  }
+}
+
+export function loadBooks(profileId: string): BookEntry[] {
+  const data = loadData();
+  return (data.books ?? [])
+    .filter(b => b.profileId === profileId)
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+
+export function getBookById(id: string): BookEntry | undefined {
+  const data = loadData();
+  return data.books?.find(b => b.id === id);
+}
+
+export function getBooksByStatus(profileId: string, status: BookStatus): BookEntry[] {
+  const data = loadData();
+  return (data.books ?? [])
+    .filter(b => b.profileId === profileId && b.status === status)
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }

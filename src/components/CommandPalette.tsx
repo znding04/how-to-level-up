@@ -60,6 +60,7 @@ export default function CommandPalette() {
     { id: 'nav-yearly', label: 'Go to Yearly Vision', icon: '⭐', category: 'navigation', href: '/yearly' },
     { id: 'nav-body', label: 'Go to Body Metrics', icon: '⚖️', category: 'navigation', href: '/body' },
     { id: 'nav-hydration', label: 'Go to Hydration', icon: '💧', category: 'navigation', href: '/hydration' },
+    { id: 'nav-books', label: 'Go to Books', icon: '📚', category: 'navigation', href: '/books' },
     { id: 'nav-weekly', label: 'Go to Weekly Review', icon: '📋', category: 'navigation', href: '/weekly' },
     { id: 'nav-review', label: 'Go to Review', icon: '📊', category: 'navigation', href: '/review' },
     { id: 'nav-settings', label: 'Go to Settings', icon: '⚙️', category: 'navigation', href: '/settings' },

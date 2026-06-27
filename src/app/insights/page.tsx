@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries, loadAllBodyMetricEntries, loadAllWaterEntries, getWaterGoal } from '@/lib/storage';
+import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries, loadAllBodyMetricEntries, loadAllWaterEntries, getWaterGoal, loadBooks } from '@/lib/storage';
 import { AppData, Habit, Achievement, DailyIntention, FocusSession, JournalEntry, SleepQuality } from '@/lib/types';
 
 function getWeekDates(weeksAgo: number): string[] {
@@ -236,6 +236,27 @@ export default function InsightsPage() {
     : null;
   const thisWeekWaterAvg = thisWeekWaterEntries.filter(e => e.amountMl > 0).length > 0
     ? Math.round(thisWeekWaterTotal / thisWeekWaterEntries.filter(e => e.amountMl > 0).length)
+    : null;
+
+  // 5e. Books / Reading Snapshot
+  const allBooks = loadBooks(fullData.activeProfileId);
+  const booksCompletedThisMonth = allBooks.filter(b => {
+    if (b.status !== 'completed' || !b.completedDate) return false;
+    const d = new Date(b.completedDate + 'T00:00:00');
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const booksCompletedLastMonth = allBooks.filter(b => {
+    if (b.status !== 'completed' || !b.completedDate) return false;
+    const d = new Date(b.completedDate + 'T00:00:00');
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    return d.getMonth() === lastMonth.getMonth() && d.getFullYear() === lastMonth.getFullYear();
+  });
+  const currentlyReadingBooks = allBooks.filter(b => b.status === 'reading');
+  const completedBooksWithRating = allBooks.filter(b => b.status === 'completed' && b.rating != null);
+  const avgBookRating = completedBooksWithRating.length > 0
+    ? +(completedBooksWithRating.reduce((sum, b) => sum + (b.rating ?? 0), 0) / completedBooksWithRating.length).toFixed(1)
     : null;
 
   // 6. Achievements Unlocked This Week
@@ -847,6 +868,44 @@ export default function InsightsPage() {
           </div>
         ) : (
           <p className="text-sm text-fg-muted">No water logged yet</p>
+        )}
+      </div>
+
+      {/* Reading */}
+      <div className="bg-card border border-card-border rounded-xl p-4">
+        <h2 className="text-lg font-semibold mb-3">📚 Reading</h2>
+        {allBooks.length > 0 ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold">{allBooks.length}</p>
+                <p className="text-xs text-fg-secondary">total books</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold">{currentlyReadingBooks.length}</p>
+                <p className="text-xs text-fg-secondary">reading</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold">{allBooks.filter(b => b.status === 'completed').length}</p>
+                <p className="text-xs text-fg-secondary">completed</p>
+              </div>
+            </div>
+            {booksCompletedThisMonth.length > 0 && (
+              <p className="text-xs text-fg-muted text-center pt-2 border-t border-card-border">
+                {booksCompletedThisMonth.length} book{booksCompletedThisMonth.length !== 1 ? 's' : ''} completed this month
+                {booksCompletedLastMonth.length > 0 && (
+                  <> · {booksCompletedThisMonth.length > booksCompletedLastMonth.length ? '↑' : '↓'} vs last month</>
+                )}
+              </p>
+            )}
+            {avgBookRating != null && (
+              <p className="text-xs text-fg-muted text-center">
+                Avg rating: {avgBookRating} ★
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-fg-muted">No books in your library yet</p>
         )}
       </div>
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry, loadQuickNotes, loadAllBodyMetricEntries, loadWaterEntry, getWaterGoal, addWaterEntry } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry, loadQuickNotes, loadAllBodyMetricEntries, loadWaterEntry, getWaterGoal, addWaterEntry, loadBooks } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
@@ -146,6 +146,12 @@ export default function DashboardPage() {
 
   // Active challenges
   const activeChallenges = getActiveChallenges();
+
+  // Books
+  const allBooks = loadBooks(data.activeProfileId);
+  const currentlyReading = allBooks.filter(b => b.status === 'reading');
+  const completedThisYear = allBooks.filter(b => b.status === 'completed' && b.completedDate?.startsWith(String(new Date().getFullYear())));
+  const readingBook = currentlyReading[0];
 
   // Quick notes - most recent 3
   const quickNotesList = loadQuickNotes(data.activeProfileId).slice(0, 3);
@@ -640,6 +646,43 @@ export default function DashboardPage() {
             <p className="text-fg-muted text-sm">
               No water logged yet — tap to start
             </p>
+          )}
+        </div>
+      </Link>
+
+      {/* Books */}
+      <Link href="/books" className="block">
+        <div className="bg-card border border-card-border hover:border-blue-500/40 rounded-2xl p-4 transition-colors">
+          <h2 className="font-semibold flex items-center gap-2 mb-2">
+            📚 Books
+          </h2>
+          {readingBook ? (
+            <div className="space-y-2">
+              <p className="text-sm text-fg-secondary truncate">Now reading: <span className="text-foreground">{readingBook.title}</span></p>
+              {readingBook.pagesTotal && readingBook.pagesRead != null ? (
+                <>
+                  <div className="flex justify-between text-xs text-fg-muted">
+                    <span>p. {readingBook.pagesRead} / {readingBook.pagesTotal}</span>
+                    <span>{Math.min(100, Math.round((readingBook.pagesRead / readingBook.pagesTotal) * 100))}%</span>
+                  </div>
+                  <div className="w-full bg-bar-track rounded-full h-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all"
+                      style={{ width: `${Math.min(100, Math.round((readingBook.pagesRead / readingBook.pagesTotal) * 100))}%` }}
+                    />
+                  </div>
+                </>
+              ) : null}
+              {completedThisYear.length > 0 && (
+                <p className="text-xs text-fg-muted">{completedThisYear.length} completed this year</p>
+              )}
+            </div>
+          ) : allBooks.length > 0 ? (
+            <p className="text-sm text-fg-secondary">
+              {allBooks.filter(b => b.status === 'want_to_read').length} want to read · {allBooks.filter(b => b.status === 'completed').length} completed
+            </p>
+          ) : (
+            <p className="text-fg-muted text-sm">No books yet — tap to add</p>
           )}
         </div>
       </Link>

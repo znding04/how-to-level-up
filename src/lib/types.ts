@@ -240,6 +240,25 @@ export interface WaterEntry {
   updatedAt: string;
 }
 
+export type BookStatus = 'want_to_read' | 'reading' | 'completed' | 'paused';
+export type BookRating = 1 | 2 | 3 | 4 | 5;
+
+export interface BookEntry {
+  id: string;
+  profileId: string;
+  title: string;
+  author: string;
+  status: BookStatus;
+  rating?: BookRating;
+  pagesTotal?: number;
+  pagesRead?: number;
+  startDate?: string;    // YYYY-MM-DD when status became 'reading'
+  completedDate?: string; // YYYY-MM-DD when status became 'completed'
+  notes?: string;        // personal notes, max 1000 chars
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AppData {
   profiles: Profile[];
   activeProfileId: string;
@@ -259,4 +278,5 @@ export interface AppData {
   quickNotes?: QuickNote[]; // scratchpad notes
   bodyMetrics?: BodyMetricEntry[]; // body weight/fat tracking
   waterEntries?: WaterEntry[]; // water intake tracking
+  books?: BookEntry[]; // reading list
 }
