@@ -1,4 +1,4 @@
-import { AppData, BodyMetricEntry, BookEntry, BookStatus, DailyIntention, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, QuickNote, SleepEntry, WaterEntry, WeeklyPlan, YearlyVision } from './types';
+import { AppData, BodyMetricEntry, BookEntry, BookStatus, DailyIntention, ExerciseEntry, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, QuickNote, SleepEntry, WaterEntry, WeeklyPlan, YearlyVision } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -824,3 +824,50 @@ export function getBooksByStatus(profileId: string, status: BookStatus): BookEnt
     .filter(b => b.profileId === profileId && b.status === status)
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
+
+// --- Exercise ---
+
+export function loadExerciseEntries(profileId: string): ExerciseEntry[] {
+  const data = loadData();
+  return (data.exerciseEntries ?? [])
+    .filter(e => e.profileId === profileId)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export function loadExerciseEntriesForWeek(profileId: string, weekDates: string[]): ExerciseEntry[] {
+  const data = loadData();
+  return (data.exerciseEntries ?? [])
+    .filter(e => e.profileId === profileId && weekDates.includes(e.date))
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export function createExerciseEntry(entry: Omit<ExerciseEntry, 'id' | 'createdAt' | 'updatedAt'>): ExerciseEntry {
+  const now = new Date().toISOString();
+  const e: ExerciseEntry = { ...entry, id: generateId(), createdAt: now, updatedAt: now };
+  const data = loadData();
+  if (!data.exerciseEntries) data.exerciseEntries = [];
+  data.exerciseEntries.push(e);
+  saveData(data);
+  return e;
+}
+
+export function saveExerciseEntry(entry: ExerciseEntry): void {
+  const data = loadData();
+  if (!data.exerciseEntries) data.exerciseEntries = [];
+  const idx = data.exerciseEntries.findIndex(e => e.id === entry.id);
+  if (idx >= 0) {
+    data.exerciseEntries[idx] = { ...entry, updatedAt: new Date().toISOString() };
+  } else {
+    data.exerciseEntries.push({ ...entry, updatedAt: new Date().toISOString() });
+  }
+  saveData(data);
+}
+
+export function deleteExerciseEntry(id: string): void {
+  const data = loadData();
+  if (data.exerciseEntries) {
+    data.exerciseEntries = data.exerciseEntries.filter(e => e.id !== id);
+    saveData(data);
+  }
+}
+

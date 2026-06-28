@@ -13,6 +13,7 @@ const tabs = [
   { href: '/challenges', label: 'Challenges' },
   { href: '/daily', label: 'Daily' },
   { href: '/body', label: 'Body' },
+  { href: '/exercise', label: 'Exercise' },
   { href: '/books', label: 'Books' },
   { href: '/hydration', label: 'Water' },
   { href: '/focus', label: 'Focus' },
@@ -52,10 +53,12 @@ function TabIcon({ href }: { href: string }) {
       return <svg xmlns="http://www.w3.org/2000/svg" {...props}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
     case '/body':
       return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M6 3h12l-1.5 9H7.5L6 3z" /><path d="M4.5 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /><path d="M19.5 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" /><path d="M9 21h6" /><path d="M12 15v6" /></svg>;
-    case '/hydration':
-      return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" /></svg>;
+    case '/exercise':
+      return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M6.5 6.5L17.5 17.5" /><path d="M3 3l4 4" /><path d="M8 3h8" /><path d="M3 8v8" /><path d="M21 8v8" /><path d="M3 12h18" /><path d="M17.5 3.5l3 3" /><path d="M20.5 6.5l-3 3" /></svg>;
     case '/books':
       return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>;
+    case '/hydration':
+      return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" /></svg>;
     case '/insights':
       return <svg xmlns="http://www.w3.org/2000/svg" {...props}><path d="M9 18h6" /><path d="M10 22h4" /><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" /></svg>;
     case '/journal':

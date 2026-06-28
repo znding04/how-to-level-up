@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { loadData, createBook, saveBook, deleteBook, loadBooks } from '@/lib/storage';
 import { BookEntry, BookStatus, BookRating } from '@/lib/types';
 
@@ -335,24 +335,20 @@ function BookModal({ book, profileId, onClose, onSave, onDelete }: {
 }
 
 export default function BooksPage() {
-  const [books, setBooks] = useState<BookEntry[]>([]);
-  const [profileId, setProfileId] = useState<string>('');
+  const [books, setBooks] = useState<BookEntry[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return loadBooks(loadData().activeProfileId);
+  });
+  const [profileId] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    return loadData().activeProfileId;
+  });
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [modalBook, setModalBook] = useState<BookEntry | undefined>(undefined);
   const [showModal, setShowModal] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const loadBooksData = useCallback(() => {
-    const data = loadData();
-    setProfileId(data.activeProfileId);
-    setBooks(loadBooks(data.activeProfileId));
-  }, []);
-
-  useEffect(() => {
-    loadBooksData();
-  }, [loadBooksData]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -378,12 +374,12 @@ export default function BooksPage() {
     } else {
       createBook(book);
     }
-    loadBooksData();
+    setBooks(loadBooks(profileId));
   };
 
   const handleDelete = (id: string) => {
     deleteBook(id);
-    loadBooksData();
+    setBooks(loadBooks(profileId));
   };
 
   return (

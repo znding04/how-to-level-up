@@ -243,6 +243,21 @@ export interface WaterEntry {
 export type BookStatus = 'want_to_read' | 'reading' | 'completed' | 'paused';
 export type BookRating = 1 | 2 | 3 | 4 | 5;
 
+export type ExerciseType = 'cardio' | 'strength' | 'flexibility' | 'sports' | 'other';
+export type ExerciseIntensity = 'low' | 'medium' | 'high';
+
+export interface ExerciseEntry {
+  id: string;
+  profileId: string;
+  date: string; // YYYY-MM-DD
+  type: ExerciseType;
+  durationMinutes: number;
+  intensity: ExerciseIntensity;
+  notes?: string; // max 300 chars
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface BookEntry {
   id: string;
   profileId: string;
@@ -279,4 +294,5 @@ export interface AppData {
   bodyMetrics?: BodyMetricEntry[]; // body weight/fat tracking
   waterEntries?: WaterEntry[]; // water intake tracking
   books?: BookEntry[]; // reading list
+  exerciseEntries?: ExerciseEntry[]; // workout tracking
 }
