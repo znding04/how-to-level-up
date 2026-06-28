@@ -1,5 +1,14 @@
 # 变强 — Progress Log
 
+## 2026-06-28
+### Added: Exercise/Workout Tracking
+- **ExerciseEntry type** (`src/lib/types.ts`): New `ExerciseEntry { id, profileId, date, type: 'cardio'|'strength'|'flexibility'|'sports'|'other', durationMinutes, intensity: 'low'|'medium'|'high', notes?, createdAt, updatedAt }` interface; added `exerciseEntries?: ExerciseEntry[]` field on `AppData`
+- **Exercise storage helpers** (`src/lib/storage.ts`): `loadExerciseEntries()`, `loadExerciseEntriesForWeek()`, `createExerciseEntry()`, `saveExerciseEntry()`, `deleteExerciseEntry()` — entries sorted by date desc
+- **Exercise page** (`src/app/exercise/page.tsx`): New `/exercise` route with weekly stats (workout count, total time in hours, day streak), quick-add grid (Running, Cycling, Gym, HIIT, Yoga, Stretch, Basketball, Hike), full add-workout form (type picker, duration presets 15/30/45/60/90 + custom, intensity low/medium/high, notes), today's workout cards, weekly breakdown by type with colored progress bars, full weekly history
+- **TabNav**: Added "Exercise" tab between Body and Books with barbell icon
+- **Bug fix** (`src/app/books/page.tsx`): Fixed `react-hooks/set-state-in-effect` lint error — replaced useEffect+setState pattern with lazy initialization in useState for books and profileId
+- `npm run lint` — 0 errors, `npm run build` — success (29 static pages including `/exercise`)
+
 ## 2026-06-25
 ### Added: Habit Challenges System
 - **HabitChallenge type** (`src/lib/types.ts`): New `HabitChallenge { id, name, description?, habitIds, startDate, endDate, status: 'active'|'completed'|'abandoned', createdAt }` interface; added `challenges?: HabitChallenge[]` field on `AppData`
