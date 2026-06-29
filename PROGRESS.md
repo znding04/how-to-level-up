@@ -1,5 +1,16 @@
 # 变强 — Progress Log
 
+## 2026-06-29
+### Added: Nutrition/Food Tracking
+- **NutritionEntry, Meal, FoodItem types** (`src/lib/types.ts`): New `NutritionEntry { id, profileId, date, meals: Meal[], totalCalories?, notes?, createdAt, updatedAt }`, `Meal { id, type: MealType, name, foodItems: FoodItem[] }`, `FoodItem { name, calories, portion }` interfaces; added `nutritionEntries?: NutritionEntry[]` field on `AppData`
+- **Nutrition storage helpers** (`src/lib/storage.ts`): `getCalorieGoal()`, `setCalorieGoal()` (separate localStorage key `nutrition-calorie-goal`, default 2000), `createDefaultNutritionEntry()`, `loadNutritionEntry()`, `saveNutritionEntry()`, `loadAllNutritionEntries()`, `loadNutritionEntriesForWeek()` — profile-aware
+- **Nutrition page** (`src/app/nutrition/page.tsx`): New `/nutrition` route with meal tabs (breakfast/lunch/dinner/snack), quick-add food presets (18 items: Rice, Bread, Egg, Apple, Banana, Milk, Chicken, Beef, Fish, Tofu, Broccoli, Carrot, Orange, Pasta, Potato, Coffee, Green Tea), full food add form (name, calories, portion), calorie progress bar, weekly bar chart, goal editor modal, daily notes
+- **TabNav**: Added "Nutrition" tab between Body and Exercise with utensil icon
+- **Dashboard card**: Nutrition card showing today's calories vs goal with progress bar and meal count
+- **Insights integration** (`src/app/insights/page.tsx`): Nutrition section with weekly avg calories, days on goal (vs last week comparison), calorie goal display
+- **Command palette**: Added "Go to Nutrition" navigation and "Log Food / Nutrition" quick-action
+- `npm run lint` — 0 errors, `npm run build` — success (32 static pages including `/nutrition`)
+
 ## 2026-06-28
 ### Added: Exercise/Workout Tracking
 - **ExerciseEntry type** (`src/lib/types.ts`): New `ExerciseEntry { id, profileId, date, type: 'cardio'|'strength'|'flexibility'|'sports'|'other', durationMinutes, intensity: 'low'|'medium'|'high', notes?, createdAt, updatedAt }` interface; added `exerciseEntries?: ExerciseEntry[]` field on `AppData`
