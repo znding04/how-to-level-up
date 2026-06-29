@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries, loadAllBodyMetricEntries, loadAllWaterEntries, getWaterGoal, loadBooks } from '@/lib/storage';
+import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries, loadAllBodyMetricEntries, loadAllWaterEntries, getWaterGoal, loadBooks, getCalorieGoal, loadNutritionEntriesForWeek } from '@/lib/storage';
 import { AppData, Habit, Achievement, DailyIntention, FocusSession, JournalEntry, SleepQuality } from '@/lib/types';
 
 function getWeekDates(weeksAgo: number): string[] {
@@ -236,6 +236,19 @@ export default function InsightsPage() {
     : null;
   const thisWeekWaterAvg = thisWeekWaterEntries.filter(e => e.amountMl > 0).length > 0
     ? Math.round(thisWeekWaterTotal / thisWeekWaterEntries.filter(e => e.amountMl > 0).length)
+    : null;
+
+  // 5f. Nutrition Snapshot
+  const calorieGoal = getCalorieGoal();
+  const thisWeekNutrition = loadNutritionEntriesForWeek(fullData.activeProfileId, getWeekDates(0));
+  const lastWeekNutrition = loadNutritionEntriesForWeek(fullData.activeProfileId, getWeekDates(1));
+  const thisWeekCalories = thisWeekNutrition.map(e => e.totalCalories);
+  const thisWeekTotalCalories = thisWeekCalories.reduce((sum: number, c) => sum + (c ?? 0), 0);
+  const thisWeekDaysWithFood = thisWeekCalories.filter(c => (c ?? 0) > 0).length;
+  const thisWeekAvgCalories = thisWeekDaysWithFood > 0 ? Math.round(thisWeekTotalCalories / thisWeekDaysWithFood) : null;
+  const thisWeekDaysOnGoal = thisWeekCalories.filter(c => calorieGoal > 0 && (c ?? 0) >= calorieGoal).length;
+  const lastWeekAvgCalories = lastWeekNutrition.length > 0 && lastWeekNutrition.filter(e => (e.totalCalories ?? 0) > 0).length > 0
+    ? Math.round(lastWeekNutrition.reduce((sum: number, e) => sum + (e.totalCalories ?? 0), 0) / lastWeekNutrition.filter(e => (e.totalCalories ?? 0) > 0).length)
     : null;
 
   // 5e. Books / Reading Snapshot
@@ -868,6 +881,40 @@ export default function InsightsPage() {
           </div>
         ) : (
           <p className="text-sm text-fg-muted">No water logged yet</p>
+        )}
+      </div>
+
+      {/* Nutrition */}
+      <div className="bg-card border border-card-border rounded-xl p-4">
+        <h2 className="text-lg font-semibold mb-3">🍽️ Nutrition</h2>
+        {thisWeekNutrition.length > 0 ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold">
+                  {thisWeekAvgCalories != null ? `${thisWeekAvgCalories}` : '—'}
+                </p>
+                <p className="text-xs text-fg-secondary">daily avg kcal</p>
+              </div>
+              <div className="text-center">
+                <p className={`text-2xl font-bold ${thisWeekDaysOnGoal >= 4 ? 'text-green-400' : 'text-fg-secondary'}`}>
+                  {thisWeekDaysOnGoal}/7
+                </p>
+                <p className="text-xs text-fg-secondary">days on goal</p>
+              </div>
+            </div>
+            {lastWeekAvgCalories != null && thisWeekAvgCalories != null && (
+              <p className="text-xs text-fg-muted text-center pt-2 border-t border-card-border">
+                {thisWeekAvgCalories > lastWeekAvgCalories ? '↑' : thisWeekAvgCalories < lastWeekAvgCalories ? '↓' : '—'}{' '}
+                {Math.abs(thisWeekAvgCalories - lastWeekAvgCalories)} kcal vs last week
+              </p>
+            )}
+            {calorieGoal > 0 && (
+              <p className="text-xs text-fg-muted text-center">Goal: {calorieGoal} kcal/day</p>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm text-fg-muted">No nutrition logged yet</p>
         )}
       </div>
 

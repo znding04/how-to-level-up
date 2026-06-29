@@ -1,4 +1,4 @@
-import { AppData, BodyMetricEntry, BookEntry, BookStatus, DailyIntention, ExerciseEntry, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, Profile, QuickNote, SleepEntry, WaterEntry, WeeklyPlan, YearlyVision } from './types';
+import { AppData, BodyMetricEntry, BookEntry, BookStatus, DailyIntention, ExerciseEntry, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, NutritionEntry, Profile, QuickNote, SleepEntry, WaterEntry, WeeklyPlan, YearlyVision } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -869,5 +869,78 @@ export function deleteExerciseEntry(id: string): void {
     data.exerciseEntries = data.exerciseEntries.filter(e => e.id !== id);
     saveData(data);
   }
+}
+
+// --- Nutrition / Food Tracking ---
+
+const DEFAULT_CALORIE_GOAL = 2000;
+const CALORIE_GOAL_KEY = 'nutrition-calorie-goal';
+
+export function getCalorieGoal(): number {
+  if (typeof window === 'undefined') return DEFAULT_CALORIE_GOAL;
+  const raw = localStorage.getItem(CALORIE_GOAL_KEY);
+  if (!raw) return DEFAULT_CALORIE_GOAL;
+  const parsed = parseInt(raw, 10);
+  return isNaN(parsed) ? DEFAULT_CALORIE_GOAL : parsed;
+}
+
+export function setCalorieGoal(goal: number): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(CALORIE_GOAL_KEY, String(goal));
+}
+
+export function createDefaultNutritionEntry(profileId: string, date: string): NutritionEntry {
+  const now = new Date().toISOString();
+  return {
+    id: generateId(),
+    profileId,
+    date,
+    meals: [],
+    totalCalories: 0,
+    notes: '',
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function loadNutritionEntry(date: string, profileId: string): NutritionEntry | null {
+  const data = loadData();
+  const entries = data.nutritionEntries ?? [];
+  return entries.find(e => e.date === date && e.profileId === profileId) ?? null;
+}
+
+export function saveNutritionEntry(entry: NutritionEntry): void {
+  const data = loadData();
+  if (!data.nutritionEntries) data.nutritionEntries = [];
+  // Compute total calories from meals
+  let totalCal = 0;
+  for (const meal of entry.meals) {
+    for (const item of meal.foodItems) {
+      if (item.calories != null) totalCal += item.calories;
+    }
+  }
+  entry.totalCalories = totalCal;
+  const idx = data.nutritionEntries.findIndex(e => e.id === entry.id);
+  if (idx >= 0) {
+    data.nutritionEntries[idx] = { ...entry, updatedAt: new Date().toISOString() };
+  } else {
+    data.nutritionEntries.push({ ...entry, updatedAt: new Date().toISOString() });
+  }
+  saveData(data);
+}
+
+export function loadAllNutritionEntries(profileId: string): NutritionEntry[] {
+  const data = loadData();
+  const entries = data.nutritionEntries ?? [];
+  return entries
+    .filter(e => e.profileId === profileId)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export function loadNutritionEntriesForWeek(profileId: string, weekDates: string[]): NutritionEntry[] {
+  const data = loadData();
+  return (data.nutritionEntries ?? [])
+    .filter(e => e.profileId === profileId && weekDates.includes(e.date))
+    .sort((a, b) => b.date.localeCompare(a.date));
 }
 

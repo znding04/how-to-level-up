@@ -59,6 +59,7 @@ export default function CommandPalette() {
     { id: 'nav-insights', label: 'Go to Insights', icon: '🔮', category: 'navigation', href: '/insights' },
     { id: 'nav-yearly', label: 'Go to Yearly Vision', icon: '⭐', category: 'navigation', href: '/yearly' },
     { id: 'nav-body', label: 'Go to Body Metrics', icon: '⚖️', category: 'navigation', href: '/body' },
+    { id: 'nav-nutrition', label: 'Go to Nutrition', icon: '🍽️', category: 'navigation', href: '/nutrition' },
     { id: 'nav-hydration', label: 'Go to Hydration', icon: '💧', category: 'navigation', href: '/hydration' },
     { id: 'nav-books', label: 'Go to Books', icon: '📚', category: 'navigation', href: '/books' },
     { id: 'nav-weekly', label: 'Go to Weekly Review', icon: '📋', category: 'navigation', href: '/weekly' },
@@ -69,6 +70,7 @@ export default function CommandPalette() {
     { id: 'action-checkin', label: 'Quick Daily Check-in', icon: '📝', category: 'quick', action: () => openCheckin() },
     { id: 'action-skill', label: 'Add Skill Session', icon: '⚡', category: 'quick', action: () => openSkillSession() },
     { id: 'action-journal', label: 'Write Journal Entry', icon: '📖', category: 'quick', action: () => openJournal() },
+    { id: 'action-nutrition', label: 'Log Food / Nutrition', icon: '🍽️', category: 'quick', action: () => router.push('/nutrition') },
   ];
 
   const filteredCommands = query

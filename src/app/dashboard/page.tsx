@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry, loadQuickNotes, loadAllBodyMetricEntries, loadWaterEntry, getWaterGoal, addWaterEntry, loadBooks } from '@/lib/storage';
+import { loadData, saveData, loadProfileData, todayString, generateId, needsOnboarding, skipHabit, unskipHabit, getActiveChallenges, getChallengeCompletionRate, loadYearlyVision, getCurrentYear, loadSleepEntry, loadQuickNotes, loadAllBodyMetricEntries, loadWaterEntry, getWaterGoal, addWaterEntry, loadBooks, getCalorieGoal, loadNutritionEntry } from '@/lib/storage';
 import { AppData } from '@/lib/types';
 import { runAchievementCheck } from '@/lib/useAchievementCheck';
 import { getAllAchievementsWithStatus, ACHIEVEMENT_DEFS } from '@/lib/achievements';
@@ -113,6 +113,16 @@ export default function DashboardPage() {
     addWaterEntry(d.activeProfileId, today, ml);
     setTodayWater(prev => prev + ml);
   }
+
+  // Nutrition / Calories
+  const calorieGoal = getCalorieGoal();
+  const todayNutrition = (() => {
+    if (typeof window === 'undefined') return null;
+    const d = loadData();
+    return loadNutritionEntry(today, d.activeProfileId);
+  })();
+  const todayCalories = todayNutrition?.totalCalories ?? 0;
+  const caloriePercent = calorieGoal > 0 ? Math.min(100, Math.round((todayCalories / calorieGoal) * 100)) : 0;
 
   // Goals progress
   const activeGoals = profileData.goals.filter((g) => g.status === 'active');
@@ -609,6 +619,38 @@ export default function DashboardPage() {
             <p className="text-fg-muted text-sm">
               No weight logged yet — tap to track
             </p>
+          )}
+        </div>
+      </Link>
+
+      {/* Nutrition */}
+      <Link href="/nutrition" className="block">
+        <div className="bg-card border border-card-border hover:border-orange-500/40 rounded-2xl p-4 transition-colors">
+          <h2 className="font-semibold flex items-center gap-2 mb-2">
+            🍽️ Nutrition
+          </h2>
+          {todayCalories > 0 || calorieGoal ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-fg-secondary">
+                  {todayCalories} / {calorieGoal} kcal
+                </span>
+                <span className={`text-sm font-bold ${caloriePercent >= 100 ? 'text-green-400' : 'text-fg-secondary'}`}>
+                  {caloriePercent}%
+                </span>
+              </div>
+              <div className="w-full bg-bar-track rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all ${caloriePercent >= 100 ? 'bg-green-500' : 'bg-orange-500'}`}
+                  style={{ width: `${caloriePercent}%` }}
+                />
+              </div>
+              {todayNutrition && todayNutrition.meals.length > 0 && (
+                <p className="text-xs text-fg-muted">{todayNutrition.meals.length} meal{todayNutrition.meals.length !== 1 ? 's' : ''} logged</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-fg-muted text-sm">No calories logged yet — tap to start</p>
           )}
         </div>
       </Link>

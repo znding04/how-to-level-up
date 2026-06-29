@@ -258,6 +258,33 @@ export interface ExerciseEntry {
   updatedAt: string;
 }
 
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+export interface FoodItem {
+  id: string;
+  name: string;
+  calories?: number; // optional kcal
+  portion?: string;  // optional portion description
+}
+
+export interface Meal {
+  id: string;
+  type: MealType;
+  name: string; // meal name like "Breakfast", "Lunch"
+  foodItems: FoodItem[];
+}
+
+export interface NutritionEntry {
+  id: string;
+  profileId: string;
+  date: string; // YYYY-MM-DD
+  meals: Meal[];
+  totalCalories?: number; // computed total, cached
+  notes?: string; // optional notes, max 200 chars
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface BookEntry {
   id: string;
   profileId: string;
@@ -295,4 +322,5 @@ export interface AppData {
   waterEntries?: WaterEntry[]; // water intake tracking
   books?: BookEntry[]; // reading list
   exerciseEntries?: ExerciseEntry[]; // workout tracking
+  nutritionEntries?: NutritionEntry[]; // nutrition/food tracking
 }
