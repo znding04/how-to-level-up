@@ -1,5 +1,15 @@
 # 变强 — Progress Log
 
+## 2026-06-30
+### Added: Skill Study Mode (Flashcard-style Reflection)
+- **SkillStudySession type** (`src/lib/types.ts`): New `SkillStudySession { id, profileId, skillId, date, cardsReviewed, correctCount, sessionMinutes, createdAt }` interface; added `studySessions?: SkillStudySession[]` field on `AppData`
+- **Study storage helpers** (`src/lib/storage.ts`): `loadStudySessions()`, `loadStudySessionsForSkill()`, `saveStudySession()`, `getStudySessionsThisWeek()` — profile-aware
+- **Study page** (`src/app/skills/study/page.tsx`): New `/skills/study` route with skill selector (shows past stats per skill), flashcard-style question/answer flow with randomized prompts, session timer, "Knew It" / "Review Again" rating buttons, and session complete screen with score breakdown
+- **Skills page link** (`src/app/skills/page.tsx`): Added "Study" link in header next to "Trends" with book SVG icon
+- **Insights integration** (`src/app/insights/page.tsx`): Study Sessions card showing sessions this week, cards reviewed, avg correct rate, and week-over-week comparison; "Start Studying" prompt when no sessions exist
+- Profile-aware: study sessions scoped to the active profile
+- `npm run lint` — 0 errors, `npm run build` — 33 static pages (including `/skills/study`)
+
 ## 2026-06-29
 ### Added: Nutrition/Food Tracking
 - **NutritionEntry, Meal, FoodItem types** (`src/lib/types.ts`): New `NutritionEntry { id, profileId, date, meals: Meal[], totalCalories?, notes?, createdAt, updatedAt }`, `Meal { id, type: MealType, name, foodItems: FoodItem[] }`, `FoodItem { name, calories, portion }` interfaces; added `nutritionEntries?: NutritionEntry[]` field on `AppData`
