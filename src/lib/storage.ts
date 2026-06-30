@@ -1,4 +1,4 @@
-import { AppData, BodyMetricEntry, BookEntry, BookStatus, DailyIntention, ExerciseEntry, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, NutritionEntry, Profile, QuickNote, SleepEntry, WaterEntry, WeeklyPlan, YearlyVision } from './types';
+import { AppData, BodyMetricEntry, BookEntry, BookStatus, DailyIntention, ExerciseEntry, FocusSession, HabitChallenge, JournalEntry, NotificationSettings, NutritionEntry, Profile, QuickNote, SkillStudySession, SleepEntry, WaterEntry, WeeklyPlan, YearlyVision } from './types';
 
 const STORAGE_KEY = 'how-to-level-up';
 
@@ -942,5 +942,42 @@ export function loadNutritionEntriesForWeek(profileId: string, weekDates: string
   return (data.nutritionEntries ?? [])
     .filter(e => e.profileId === profileId && weekDates.includes(e.date))
     .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+// --- Skill Study Sessions ---
+
+export function loadStudySessions(profileId: string): SkillStudySession[] {
+  const data = loadData();
+  return (data.studySessions ?? [])
+    .filter(s => s.profileId === profileId)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export function loadStudySessionsForSkill(profileId: string, skillId: string): SkillStudySession[] {
+  const data = loadData();
+  return (data.studySessions ?? [])
+    .filter(s => s.profileId === profileId && s.skillId === skillId)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export function saveStudySession(session: SkillStudySession): void {
+  const data = loadData();
+  if (!data.studySessions) data.studySessions = [];
+  data.studySessions.push({ ...session, createdAt: new Date().toISOString() });
+  saveData(data);
+}
+
+export function getStudySessionsThisWeek(profileId: string): SkillStudySession[] {
+  const data = loadData();
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  const day = startOfWeek.getDay();
+  const diff = day === 0 ? 6 : day - 1; // Monday start
+  startOfWeek.setDate(today.getDate() - diff);
+  const weekStart = startOfWeek.toISOString().split('T')[0];
+  return (data.studySessions ?? []).filter(s => {
+    if (s.profileId !== profileId) return false;
+    return s.date >= weekStart && s.date <= today.toISOString().split('T')[0];
+  });
 }
 

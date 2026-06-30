@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries, loadAllBodyMetricEntries, loadAllWaterEntries, getWaterGoal, loadBooks, getCalorieGoal, loadNutritionEntriesForWeek } from '@/lib/storage';
+import { loadData, loadProfileData, loadFocusSessions, loadAllDailyIntentions, loadAllJournalEntries, loadAllSleepEntries, loadAllBodyMetricEntries, loadAllWaterEntries, getWaterGoal, loadBooks, getCalorieGoal, loadNutritionEntriesForWeek, getStudySessionsThisWeek } from '@/lib/storage';
 import { AppData, Habit, Achievement, DailyIntention, FocusSession, JournalEntry, SleepQuality } from '@/lib/types';
 
 function getWeekDates(weeksAgo: number): string[] {
@@ -429,6 +429,25 @@ export default function InsightsPage() {
     }
     return streak;
   })();
+
+  // Study Sessions this week
+  const thisWeekStudySessions = getStudySessionsThisWeek(fullData.activeProfileId);
+  const thisWeekStudyCards = thisWeekStudySessions.reduce((sum, s) => sum + s.cardsReviewed, 0);
+  const thisWeekStudyCorrect = thisWeekStudySessions.reduce((sum, s) => sum + s.correctCount, 0);
+  const thisWeekStudyAvgRate = thisWeekStudyCards > 0
+    ? Math.round((thisWeekStudyCorrect / thisWeekStudyCards) * 100)
+    : null;
+
+  // Last week study sessions
+  const lwDates = getWeekDates(1);
+  const lwStart = lwDates[0];
+  const lwEnd = lwDates[6];
+  const data = loadData();
+  const lastWeekStudySessions = (data.studySessions ?? []).filter(s => {
+    if (s.profileId !== fullData.activeProfileId) return false;
+    return s.date >= lwStart && s.date <= lwEnd;
+  });
+  const lastWeekStudyCards = lastWeekStudySessions.reduce((sum, s) => sum + s.cardsReviewed, 0);
 
   // Journal insights
   const journalEntriesThisWeek = journalEntries.filter((e) => thisWeekDates.includes(e.date));
@@ -992,6 +1011,50 @@ export default function InsightsPage() {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Study Sessions */}
+      {thisWeekStudySessions.length > 0 || thisWeekStudyAvgRate !== null ? (
+        <div className="bg-card border border-card-border rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">📖 Study Sessions</h2>
+            <Link href="/skills/study" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+              Study →
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <p className="text-2xl font-bold">{thisWeekStudySessions.length}</p>
+              <p className="text-xs text-fg-secondary">sessions</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">{thisWeekStudyCards}</p>
+              <p className="text-xs text-fg-secondary">cards reviewed</p>
+            </div>
+            <div className="text-center">
+              <p className={`text-2xl font-bold ${thisWeekStudyAvgRate !== null && thisWeekStudyAvgRate >= 70 ? 'text-green-400' : 'text-fg-secondary'}`}>
+                {thisWeekStudyAvgRate !== null ? `${thisWeekStudyAvgRate}%` : '—'}
+              </p>
+              <p className="text-xs text-fg-secondary">avg correct</p>
+            </div>
+          </div>
+          {lastWeekStudyCards > 0 && (
+            <p className="text-xs text-fg-muted text-center pt-2 border-t border-card-border">
+              {thisWeekStudyCards > lastWeekStudyCards ? '↑' : thisWeekStudyCards < lastWeekStudyCards ? '↓' : '—'}{' '}
+              {Math.abs(thisWeekStudyCards - lastWeekStudyCards)} cards vs last week
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="bg-card border border-card-border rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold">📖 Study Sessions</h2>
+            <Link href="/skills/study" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+              Start Studying →
+            </Link>
+          </div>
+          <p className="text-sm text-fg-muted">Use flashcard-style reflection prompts to consolidate your skill learning.</p>
         </div>
       )}
 

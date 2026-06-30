@@ -285,6 +285,17 @@ export interface NutritionEntry {
   updatedAt: string;
 }
 
+export interface SkillStudySession {
+  id: string;
+  profileId: string;
+  skillId: string;
+  date: string; // YYYY-MM-DD
+  cardsReviewed: number;
+  correctCount: number;
+  sessionMinutes: number;
+  createdAt: string;
+}
+
 export interface BookEntry {
   id: string;
   profileId: string;
@@ -323,4 +334,5 @@ export interface AppData {
   books?: BookEntry[]; // reading list
   exerciseEntries?: ExerciseEntry[]; // workout tracking
   nutritionEntries?: NutritionEntry[]; // nutrition/food tracking
+  studySessions?: SkillStudySession[]; // skill study/flashcard sessions
 }
