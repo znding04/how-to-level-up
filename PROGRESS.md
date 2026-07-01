@@ -1,5 +1,10 @@
 # 变强 — Progress Log
 
+## 2026-07-01
+### Fixed: ESLint Warnings in Skills Study Page
+- Removed unused `setSkills` and `setProfileId` setState variables from `useState` declarations in `src/app/skills/study/page.tsx` (lines 47 and 52)
+- `npm run lint` — 0 errors, 0 warnings (was 2 warnings)
+
 ## 2026-06-30
 ### Added: Skill Study Mode (Flashcard-style Reflection)
 - **SkillStudySession type** (`src/lib/types.ts`): New `SkillStudySession { id, profileId, skillId, date, cardsReviewed, correctCount, sessionMinutes, createdAt }` interface; added `studySessions?: SkillStudySession[]` field on `AppData`
