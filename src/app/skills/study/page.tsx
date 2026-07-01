@@ -44,12 +44,12 @@ function getStudyStatsForSkill(profileId: string, skillId: string): { sessions: 
 }
 
 export default function SkillStudyPage() {
-  const [skills, setSkills] = useState<Skill[]>(() => {
+  const [skills] = useState<Skill[]>(() => {
     if (typeof window === 'undefined') return [];
     const data = loadData();
     return loadProfileData(data).skills;
   });
-  const [profileId, setProfileId] = useState<string>(() => {
+  const [profileId] = useState<string>(() => {
     if (typeof window === 'undefined') return '';
     return loadData().activeProfileId;
   });
